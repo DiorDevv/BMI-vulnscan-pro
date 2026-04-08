@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: vulnscan-pro
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+
+    # Render PORT o'zgaruvchisini avtomatik beradi
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DB_PATH
+        value: /data/vulnscan.db
+
+    # Doimiy disk — skan tarixi saqlanadi (1 GB bepul)
+    disk:
+      name: vulnscan-data
+      mountPath: /data
+      sizeGB: 1
+
+    healthCheckPath: /health

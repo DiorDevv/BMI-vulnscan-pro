@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import aiosqlite
@@ -49,7 +50,9 @@ CREATE TABLE IF NOT EXISTS findings (
 class Database:
     """aiosqlite-backed findings persistence."""
 
-    def __init__(self, path: str | Path = "vulnscan.db") -> None:
+    def __init__(self, path: str | Path | None = None) -> None:
+        if path is None:
+            path = os.environ.get("DB_PATH", "vulnscan.db")
         self._path = str(path)
         self._db: aiosqlite.Connection | None = None
 

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import threading
 import time
 import uuid
@@ -177,6 +178,12 @@ async def scan_history() -> JSONResponse:
         await db.close()
 
 
+@app.get("/health")
+async def health_check() -> JSONResponse:
+    """Health check endpoint — used by Render and UptimeRobot to keep the service alive."""
+    return JSONResponse({"status": "ok", "service": "VulnScan Pro"})
+
+
 # ── Background scan task ──────────────────────────────────────────────────────
 
 async def _scan_task(
@@ -231,25 +238,28 @@ async def _scan_task(
 # ── Server launcher ───────────────────────────────────────────────────────────
 
 def start_server(
-    host: str = "127.0.0.1",
-    port: int = 8719,
+    host: str = "0.0.0.0",
+    port: int | None = None,
     open_browser: bool = True,
 ) -> None:
     """Start uvicorn and (optionally) open the browser."""
     configure_logging(verbose=False)
 
+    # Render (and other cloud platforms) set PORT env variable
+    resolved_port = port or int(os.environ.get("PORT", 8719))
+
     if open_browser:
         def _opener() -> None:
             time.sleep(1.5)  # Brief wait for the server to bind
-            webbrowser.open(f"http://{host}:{port}")
+            webbrowser.open(f"http://127.0.0.1:{resolved_port}")
 
         threading.Thread(target=_opener, daemon=True).start()
 
-    print(f"\n  VulnScan Pro Web UI  →  http://{host}:{port}\n")
+    print(f"\n  VulnScan Pro Web UI  →  http://{host}:{resolved_port}\n")
     uvicorn.run(
         app,
         host=host,
-        port=port,
+        port=resolved_port,
         log_level="warning",
         access_log=False,
     )
