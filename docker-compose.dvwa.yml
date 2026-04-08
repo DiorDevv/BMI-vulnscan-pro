@@ -1,0 +1,36 @@
+services:
+  dvwa:
+    image: vulnerables/web-dvwa
+    ports:
+      - "8080:80"
+    environment:
+      - MYSQL_ROOT_PASSWORD=dvwa
+      - MYSQL_DATABASE=dvwa
+      - MYSQL_USER=dvwa
+      - MYSQL_PASSWORD=p@ssw0rd
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/login.php"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  vulnscan:
+    build: .
+    command: >
+      --target http://dvwa/vulnerabilities/sqli/?id=1&Submit=Submit
+      --scan full
+      --output /reports/dvwa
+      --format all
+      --ignore-ssl
+      --cookies "PHPSESSID=placeholder; security=low"
+    volumes:
+      - ./reports:/reports
+    depends_on:
+      dvwa:
+        condition: service_healthy
+    networks:
+      - default
+
+networks:
+  default:
+    name: vulnscan_net

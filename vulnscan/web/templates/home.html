@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>VulnScan Pro — Bosh Sahifa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <link rel="stylesheet" href="/static/pages.css"/>
+</head>
+<body>
+
+<!-- ════════════ NAV ════════════ -->
+<header class="site-nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-logo-svg">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <div>
+        <span class="brand">VulnScan<span class="brand-accent">Pro</span></span>
+        <span class="brand-sub">Web Security Scanner</span>
+      </div>
+    </a>
+    <nav class="nav-links">
+      <a href="/"        class="nav-link active">Bosh Sahifa</a>
+      <a href="/scan"    class="nav-link">Skaner</a>
+      <a href="/services" class="nav-link">Xizmatlar</a>
+      <a href="/about"   class="nav-link">Haqida</a>
+      <a href="/contact" class="nav-link">Aloqa</a>
+    </nav>
+    <div class="nav-right">
+      <span class="auth-tag">FAQAT RUXSAT BERILGAN TESTLAR</span>
+      <a href="/scan" class="nav-cta">Skanerlash →</a>
+    </div>
+    <button class="nav-burger" onclick="toggleMobileNav()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu hidden" id="mobile-menu">
+    <a href="/"         class="mob-link active">Bosh Sahifa</a>
+    <a href="/scan"     class="mob-link">Skaner</a>
+    <a href="/services" class="mob-link">Xizmatlar</a>
+    <a href="/about"    class="mob-link">Haqida</a>
+    <a href="/contact"  class="mob-link">Aloqa</a>
+  </div>
+</header>
+
+<!-- ════════════ HERO ════════════ -->
+<section class="pg-hero">
+  <div class="hero-glow"></div>
+  <div class="hero-grid-bg"></div>
+  <div class="pg-hero-inner">
+    <div class="hero-eyebrow">
+      <span class="eyebrow-dot"></span>
+      Professional · Open Source · Authorized Use Only
+    </div>
+    <h1 class="pg-hero-h1">
+      Veb Ilovangizning<br/>
+      <span class="h1-grad">Zaifliklarini Aniqlang</span>
+    </h1>
+    <p class="pg-hero-p">
+      8 ta kuchli modul yordamida SQL In'ektsiya, XSS, CORS, SSL/TLS,
+      xavfsizlik sarlavhalari va boshqa zaifliklarni real-vaqtda skanerlang.
+      Professional darajadagi hisobotlar va o'zbek tilida batafsil tushuntirishlar.
+    </p>
+    <div class="hero-btns">
+      <a href="/scan" class="btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        Skanerlashni Boshlash
+      </a>
+      <a href="/services" class="btn-ghost">Xizmatlarni Ko'rish →</a>
+    </div>
+    <div class="hero-stats">
+      <div class="h-stat"><span class="h-stat-n">8</span><span class="h-stat-l">Zaiflik Moduli</span></div>
+      <div class="h-stat-div"></div>
+      <div class="h-stat"><span class="h-stat-n">3</span><span class="h-stat-l">Skan Profili</span></div>
+      <div class="h-stat-div"></div>
+      <div class="h-stat"><span class="h-stat-n">100%</span><span class="h-stat-l">Real-vaqt</span></div>
+      <div class="h-stat-div"></div>
+      <div class="h-stat"><span class="h-stat-n">O'zbek</span><span class="h-stat-l">Tili</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ FEATURES ════════════ -->
+<section class="pg-section">
+  <div class="pg-container">
+    <div class="section-head">
+      <div class="section-badge">IMKONIYATLAR</div>
+      <h2 class="section-h2">Nima uchun VulnScan Pro?</h2>
+      <p class="section-sub">Professional xavfsizlik auditorlari uchun yaratilgan, lekin hamma uchun qulay.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="fc-icon" style="--c:#00c8f0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+        </div>
+        <h3 class="fc-title">Real-vaqt Streaming</h3>
+        <p class="fc-desc">Server-Sent Events orqali skan natijalari brauzeringizga jonli uzatiladi. Kutish shart emas.</p>
+      </div>
+      <div class="feat-card">
+        <div class="fc-icon" style="--c:#00e87a">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <h3 class="fc-title">8 Ta Zaiflik Moduli</h3>
+        <p class="fc-desc">SQL In'ektsiya, XSS, CORS, Sarlavhalar, SSL/TLS, Port Skaner, Directory Listing va boshqalar.</p>
+      </div>
+      <div class="feat-card">
+        <div class="fc-icon" style="--c:#ffc107">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h3 class="fc-title">O'zbek Tilida Tushuntirish</h3>
+        <p class="fc-desc">Har bir zaiflik haqida to'liq o'zbek tilida: nima ekanligidan tortib qanday tuzatishgacha.</p>
+      </div>
+      <div class="feat-card">
+        <div class="fc-icon" style="--c:#9d6ff0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>
+          </svg>
+        </div>
+        <h3 class="fc-title">Batafsil Hisobotlar</h3>
+        <p class="fc-desc">CVSS ball, CWE ID, OWASP yo'naltirish, payload, evidence va tuzatish tavsiyalari.</p>
+      </div>
+      <div class="feat-card">
+        <div class="fc-icon" style="--c:#ff7730">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+        </div>
+        <h3 class="fc-title">Skan Profillari</h3>
+        <p class="fc-desc">Tez (Quick), To'liq (Full) va Yashirin (Stealth) — ehtiyojingizga mos profil tanlang.</p>
+      </div>
+      <div class="feat-card">
+        <div class="fc-icon" style="--c:#ff2d55">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+            <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+          </svg>
+        </div>
+        <h3 class="fc-title">Tarix & Eksport</h3>
+        <p class="fc-desc">O'tgan skanlar tarixi SQLite da saqlanadi. JSON va CSV formatida eksport qilish imkoni.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ HOW IT WORKS ════════════ -->
+<section class="pg-section pg-section-alt">
+  <div class="pg-container">
+    <div class="section-head">
+      <div class="section-badge">QANDAY ISHLAYDI</div>
+      <h2 class="section-h2">3 Ta Oson Qadam</h2>
+    </div>
+    <div class="steps-row">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-icon">🔗</div>
+        <h3 class="step-title">URL kiriting</h3>
+        <p class="step-desc">Tekshirmoqchi bo'lgan veb-sayt yoki ilovaning URL manzilini kiriting. Skan profilini tanlang.</p>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-icon">⚡</div>
+        <h3 class="step-title">Skanerlash</h3>
+        <p class="step-desc">Barcha modullar bir vaqtda ishlaydi. Real-vaqtda terminalda va brauzerda natijalar ko'rinadi.</p>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-icon">📊</div>
+        <h3 class="step-title">Natijani tahlil qiling</h3>
+        <p class="step-desc">Har bir zaiflik uchun o'zbek tushuntirishi, texnik detallar, CVSS ball va tuzatish yo'lini ko'ring.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ MODULES PREVIEW ════════════ -->
+<section class="pg-section">
+  <div class="pg-container">
+    <div class="section-head">
+      <div class="section-badge">MODULLAR</div>
+      <h2 class="section-h2">Nima Aniqlanadi?</h2>
+      <p class="section-sub">Har bir modul alohida zaiflik turini chuqur tekshiradi.</p>
+    </div>
+    <div class="modules-grid">
+      <div class="mod-preview-card">
+        <span class="mod-emoji">💉</span>
+        <div>
+          <div class="mod-name">SQL In'ektsiya</div>
+          <div class="mod-desc">Ma'lumotlar bazasiga ruxsatsiz kirish</div>
+        </div>
+        <span class="sev-dot sc"></span>
+      </div>
+      <div class="mod-preview-card">
+        <span class="mod-emoji">🎭</span>
+        <div>
+          <div class="mod-name">Cross-Site Scripting (XSS)</div>
+          <div class="mod-desc">Reflected, Stored va DOM XSS</div>
+        </div>
+        <span class="sev-dot sh"></span>
+      </div>
+      <div class="mod-preview-card">
+        <span class="mod-emoji">🌐</span>
+        <div>
+          <div class="mod-name">CORS Noto'g'ri Sozlama</div>
+          <div class="mod-desc">Cross-origin resurs ulashish xatolari</div>
+        </div>
+        <span class="sev-dot sh"></span>
+      </div>
+      <div class="mod-preview-card">
+        <span class="mod-emoji">🔒</span>
+        <div>
+          <div class="mod-name">SSL/TLS Tahlili</div>
+          <div class="mod-desc">Sertifikat va protokol zaifliklar</div>
+        </div>
+        <span class="sev-dot sm"></span>
+      </div>
+      <div class="mod-preview-card">
+        <span class="mod-emoji">🛡️</span>
+        <div>
+          <div class="mod-name">Xavfsizlik Sarlavhalari</div>
+          <div class="mod-desc">HSTS, CSP, X-Frame-Options va boshqalar</div>
+        </div>
+        <span class="sev-dot sm"></span>
+      </div>
+      <div class="mod-preview-card">
+        <span class="mod-emoji">📁</span>
+        <div>
+          <div class="mod-name">Directory Listing</div>
+          <div class="mod-desc">Ochiq katalog va fayllar</div>
+        </div>
+        <span class="sev-dot sm"></span>
+      </div>
+      <div class="mod-preview-card">
+        <span class="mod-emoji">🔌</span>
+        <div>
+          <div class="mod-name">Port Skaneri</div>
+          <div class="mod-desc">Ochiq portlar va xizmatlar</div>
+        </div>
+        <span class="sev-dot sl"></span>
+      </div>
+      <div class="mod-preview-card">
+        <span class="mod-emoji">↪️</span>
+        <div>
+          <div class="mod-name">Ochiq Yo'naltirish</div>
+          <div class="mod-desc">Open Redirect zaifliklarini topish</div>
+        </div>
+        <span class="sev-dot sl"></span>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:2rem">
+      <a href="/services" class="btn-ghost">Barcha xizmatlarni ko'rish →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ CTA ════════════ -->
+<section class="pg-section pg-cta-section">
+  <div class="pg-container">
+    <div class="cta-card">
+      <div class="cta-glow"></div>
+      <div class="cta-inner">
+        <h2 class="cta-h2">Saytingizni Hoziroq Tekshiring</h2>
+        <p class="cta-p">Faqat ruxsat berilgan maqsadlar uchun. Testlash oldidan sayt egasidan ruxsat oling.</p>
+        <a href="/scan" class="btn-primary btn-lg">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          Skanerlashni Boshlash
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer class="site-footer">
+  <div class="pg-container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="color:var(--cyan)">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span class="brand">VulnScan<span class="brand-accent">Pro</span></span>
+      </div>
+      <nav class="footer-links">
+        <a href="/"         class="footer-link">Bosh Sahifa</a>
+        <a href="/scan"     class="footer-link">Skaner</a>
+        <a href="/services" class="footer-link">Xizmatlar</a>
+        <a href="/about"    class="footer-link">Haqida</a>
+        <a href="/contact"  class="footer-link">Aloqa</a>
+      </nav>
+      <div class="footer-note">Faqat ruxsat berilgan testlar uchun · © 2026 VulnScan Pro</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+function toggleMobileNav() {
+  const m = document.getElementById('mobile-menu');
+  m.classList.toggle('hidden');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VulnScan Pro — {{ result.target }}</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --critical: #dc2626; --high: #ea580c; --medium: #d97706;
+      --low: #65a30d;      --info: #2563eb;
+      --bg: #0f172a;       --surface: #1e293b; --border: #334155;
+      --text: #e2e8f0;     --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg);
+           color: var(--text); line-height: 1.6; }
+    a { color: var(--info); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+    /* Header */
+    .header { background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+               padding: 2rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
+    .header h1 { font-size: 1.8rem; font-weight: 700; color: #60a5fa; }
+    .header .meta { color: var(--muted); font-size: 0.875rem; margin-top: 0.5rem; }
+
+    /* Risk gauge */
+    .risk-panel { background: var(--surface); border: 1px solid var(--border);
+                  border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;
+                  display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; }
+    .risk-score { font-size: 3rem; font-weight: 800;
+                  color: {% if result.risk_score >= 75 %}var(--critical)
+                         {% elif result.risk_score >= 50 %}var(--high)
+                         {% elif result.risk_score >= 25 %}var(--medium)
+                         {% else %}var(--low){% endif %}; }
+    .risk-bar-wrap { flex: 1; min-width: 200px; }
+    .risk-bar-bg { background: var(--border); border-radius: 4px; height: 12px; }
+    .risk-bar { height: 12px; border-radius: 4px; transition: width 1s;
+                width: {{ result.risk_score }}%;
+                background: {% if result.risk_score >= 75 %}var(--critical)
+                            {% elif result.risk_score >= 50 %}var(--high)
+                            {% elif result.risk_score >= 25 %}var(--medium)
+                            {% else %}var(--low){% endif %}; }
+
+    /* Severity badges */
+    .badges { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .badge { padding: 0.4rem 1rem; border-radius: 999px; font-weight: 600;
+             font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; }
+    .badge-critical { background: rgba(220,38,38,.15); color: var(--critical);
+                      border: 1px solid var(--critical); }
+    .badge-high     { background: rgba(234,88,12,.15);  color: var(--high);
+                      border: 1px solid var(--high); }
+    .badge-medium   { background: rgba(217,119,6,.15);  color: var(--medium);
+                      border: 1px solid var(--medium); }
+    .badge-low      { background: rgba(101,163,13,.15); color: var(--low);
+                      border: 1px solid var(--low); }
+    .badge-info     { background: rgba(37,99,235,.15);  color: var(--info);
+                      border: 1px solid var(--info); }
+
+    /* Charts */
+    .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+               gap: 1.5rem; margin-bottom: 1.5rem; }
+    .chart-card { background: var(--surface); border: 1px solid var(--border);
+                  border-radius: 12px; padding: 1.5rem; }
+    .chart-card h3 { margin-bottom: 1rem; color: var(--muted);
+                     font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Section headers */
+    .section { margin-bottom: 2rem; }
+    .section-title { font-size: 1.2rem; font-weight: 700; color: #60a5fa;
+                     border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;
+                     margin-bottom: 1rem; }
+
+    /* Findings table */
+    .filter-bar { margin-bottom: 1rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .filter-btn { padding: 0.35rem 0.9rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem;
+                  border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+    .filter-btn.active { background: #1e40af; border-color: #3b82f6; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th { background: var(--surface); color: var(--muted); text-align: left;
+         padding: 0.75rem 1rem; font-weight: 600; cursor: pointer; user-select: none;
+         border-bottom: 2px solid var(--border); position: sticky; top: 0; }
+    th:hover { color: var(--text); }
+    td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:hover td { background: rgba(255,255,255,0.03); }
+    .sev-pill { padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; }
+    .sev-critical { background: rgba(220,38,38,.2); color: var(--critical); }
+    .sev-high     { background: rgba(234,88,12,.2);  color: var(--high); }
+    .sev-medium   { background: rgba(217,119,6,.2);  color: var(--medium); }
+    .sev-low      { background: rgba(101,163,13,.2); color: var(--low); }
+    .sev-info     { background: rgba(37,99,235,.2);  color: var(--info); }
+
+    /* Collapsible details */
+    details { margin-top: 0.5rem; }
+    summary { cursor: pointer; color: var(--info); font-size: 0.8rem; }
+    .detail-box { background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+                  padding: 1rem; margin-top: 0.5rem; font-family: monospace; font-size: 0.8rem;
+                  white-space: pre-wrap; word-break: break-all; color: #a5f3fc; }
+    .remediation-text { color: #86efac; font-size: 0.8rem; margin-top: 0.5rem; }
+
+    /* Roadmap */
+    .roadmap-table td:nth-child(3) { font-family: monospace; font-size: 0.8rem; }
+    .effort-low    { color: var(--low); }
+    .effort-medium { color: var(--medium); }
+    .effort-high   { color: var(--critical); }
+    .quick-win { background: rgba(101,163,13,.15); color: var(--low);
+                 padding: 0.1rem 0.5rem; border-radius: 4px; font-size: 0.75rem; }
+
+    /* Footer */
+    footer { text-align: center; color: var(--muted); font-size: 0.75rem;
+             padding: 2rem 0; border-top: 1px solid var(--border); margin-top: 3rem; }
+  </style>
+</head>
+<body>
+<div class="header">
+  <div class="container">
+    <h1>VulnScan Pro</h1>
+    <div class="meta">
+      Target: <strong>{{ result.target }}</strong> &nbsp;|&nbsp;
+      Scan Profile: <strong>{{ result.scan_profile }}</strong> &nbsp;|&nbsp;
+      Duration: <strong>{{ "%.1f"|format(result.duration_seconds) }}s</strong> &nbsp;|&nbsp;
+      Requests: <strong>{{ result.total_requests }}</strong> &nbsp;|&nbsp;
+      Generated: <strong>{{ now }}</strong>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- 1. Executive Summary -->
+  <div class="section">
+    <div class="section-title">Executive Summary</div>
+    <div class="risk-panel">
+      <div>
+        <div style="color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.05em">Risk Score</div>
+        <div class="risk-score">{{ result.risk_score }}<span style="font-size:1.2rem;color:var(--muted)">/100</span></div>
+      </div>
+      <div class="risk-bar-wrap">
+        <div class="risk-bar-bg"><div class="risk-bar"></div></div>
+        <div style="margin-top:.5rem;font-size:.8rem;color:var(--muted)">
+          {% if result.risk_score >= 75 %}CRITICAL RISK
+          {% elif result.risk_score >= 50 %}HIGH RISK
+          {% elif result.risk_score >= 25 %}MEDIUM RISK
+          {% else %}LOW RISK{% endif %}
+        </div>
+      </div>
+      <div class="badges">
+        <span class="badge badge-critical">CRITICAL <strong>{{ result.severity_counts.critical }}</strong></span>
+        <span class="badge badge-high">HIGH <strong>{{ result.severity_counts.high }}</strong></span>
+        <span class="badge badge-medium">MEDIUM <strong>{{ result.severity_counts.medium }}</strong></span>
+        <span class="badge badge-low">LOW <strong>{{ result.severity_counts.low }}</strong></span>
+        <span class="badge badge-info">INFO <strong>{{ result.severity_counts.info }}</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Charts -->
+  <div class="charts section">
+    <div class="chart-card">
+      <h3>Vulnerabilities by Category</h3>
+      <canvas id="categoryChart" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Severity Distribution</h3>
+      <canvas id="severityChart" height="220"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Findings Timeline</h3>
+      <canvas id="timelineChart" height="220"></canvas>
+    </div>
+  </div>
+
+  <!-- 3. Findings Table -->
+  <div class="section">
+    <div class="section-title">Findings ({{ active_findings|length }})</div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterSev('all')">All</button>
+      <button class="filter-btn" onclick="filterSev('critical')" style="color:var(--critical)">Critical</button>
+      <button class="filter-btn" onclick="filterSev('high')" style="color:var(--high)">High</button>
+      <button class="filter-btn" onclick="filterSev('medium')" style="color:var(--medium)">Medium</button>
+      <button class="filter-btn" onclick="filterSev('low')" style="color:var(--low)">Low</button>
+      <button class="filter-btn" onclick="filterSev('info')" style="color:var(--info)">Info</button>
+    </div>
+    <table id="findingsTable">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">#</th>
+          <th onclick="sortTable(1)">Severity ↕</th>
+          <th onclick="sortTable(2)">Type</th>
+          <th onclick="sortTable(3)">URL</th>
+          <th onclick="sortTable(4)">Parameter</th>
+          <th onclick="sortTable(5)">CVSS</th>
+          <th>CWE</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for f in active_findings %}
+        <tr data-severity="{{ f.severity.value }}">
+          <td>{{ loop.index }}</td>
+          <td><span class="sev-pill sev-{{ f.severity.value }}">{{ f.severity.value|upper }}</span></td>
+          <td>{{ f.vuln_type.value|replace("_"," ")|title }}</td>
+          <td style="max-width:300px;word-break:break-all;font-size:.8rem">{{ f.url }}</td>
+          <td><code>{{ f.parameter or "—" }}</code></td>
+          <td><strong style="color:{% if f.cvss_score >= 9 %}var(--critical){% elif f.cvss_score >= 7 %}var(--high){% elif f.cvss_score >= 4 %}var(--medium){% else %}var(--low){% endif %}">{{ "%.1f"|format(f.cvss_score) }}</strong></td>
+          <td><a href="https://cwe.mitre.org/data/definitions/{{ f.cwe_id|replace('CWE-','') }}.html" target="_blank">{{ f.cwe_id }}</a></td>
+          <td>
+            <details>
+              <summary>Expand</summary>
+              {% if f.payload %}<div class="detail-box">Payload: {{ f.payload }}</div>{% endif %}
+              <div class="detail-box">Evidence: {{ f.evidence }}</div>
+              <div class="remediation-text">&#9654; {{ f.remediation }}</div>
+              <div style="font-size:.75rem;color:var(--muted);margin-top:.5rem">
+                OWASP {{ f.owasp_ref }} &nbsp;|&nbsp; {{ f.discovered.strftime('%Y-%m-%d %H:%M') }} UTC
+              </div>
+            </details>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">No findings.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 4. Remediation Roadmap -->
+  <div class="section">
+    <div class="section-title">Remediation Roadmap</div>
+    <table class="roadmap-table">
+      <thead>
+        <tr>
+          <th>Priority</th><th>Finding</th><th>CVSS</th>
+          <th>Effort</th><th>Quick Win</th><th>Remediation</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for f in active_findings|sort(attribute='cvss_score', reverse=True) %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ f.vuln_type.value|replace("_"," ")|title }}<br>
+              <small style="color:var(--muted)">{{ f.url[:60] }}{% if f.url|length > 60 %}…{% endif %}</small></td>
+          <td><strong>{{ "%.1f"|format(f.cvss_score) }}</strong></td>
+          <td class="effort-{% if f.cvss_score >= 8 %}high{% elif f.cvss_score >= 5 %}medium{% else %}low{% endif %}">
+            {% if f.cvss_score >= 8 %}High{% elif f.cvss_score >= 5 %}Medium{% else %}Low{% endif %}
+          </td>
+          <td>{% if f.cvss_score < 5 or f.vuln_type.value == 'missing_security_header' %}
+              <span class="quick-win">✓ Quick</span>{% else %}—{% endif %}</td>
+          <td style="font-size:.8rem">{{ f.remediation }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div><!-- /container -->
+
+<footer>
+  <div>Generated by <strong>VulnScan Pro v1.0.0</strong> — For authorized security testing only.</div>
+  <div style="margin-top:.5rem;color:#dc2626">⚠ This report contains sensitive security information. Handle accordingly.</div>
+</footer>
+
+<script>
+// ── Chart data ────────────────────────────────────────────────────────────────
+const catLabels = {{ category_labels|tojson }};
+const catData   = {{ category_data|tojson }};
+const sevLabels = ['Critical','High','Medium','Low','Info'];
+const sevData   = [{{ result.severity_counts.critical }},{{ result.severity_counts.high }},
+                   {{ result.severity_counts.medium }},{{ result.severity_counts.low }},
+                   {{ result.severity_counts.info }}];
+const tlLabels  = {{ timeline_labels|tojson }};
+const tlData    = {{ timeline_data|tojson }};
+
+const COLORS = ['#dc2626','#ea580c','#d97706','#65a30d','#2563eb',
+                '#7c3aed','#0891b2','#059669','#c026d3','#d946ef'];
+
+new Chart(document.getElementById('categoryChart'),{
+  type:'doughnut',
+  data:{labels:catLabels,datasets:[{data:catData,backgroundColor:COLORS,borderWidth:0}]},
+  options:{plugins:{legend:{labels:{color:'#94a3b8',font:{size:11}}}},
+           responsive:true,maintainAspectRatio:false}
+});
+
+new Chart(document.getElementById('severityChart'),{
+  type:'bar',
+  data:{labels:sevLabels,
+        datasets:[{data:sevData,
+                   backgroundColor:['#dc2626','#ea580c','#d97706','#65a30d','#2563eb'],
+                   borderRadius:4}]},
+  options:{plugins:{legend:{display:false}},
+           scales:{x:{ticks:{color:'#94a3b8'},grid:{color:'#1e293b'}},
+                   y:{ticks:{color:'#94a3b8',stepSize:1},grid:{color:'#334155'}}},
+           responsive:true,maintainAspectRatio:false}
+});
+
+new Chart(document.getElementById('timelineChart'),{
+  type:'line',
+  data:{labels:tlLabels,
+        datasets:[{label:'Findings',data:tlData,borderColor:'#3b82f6',
+                   backgroundColor:'rgba(59,130,246,.1)',fill:true,tension:.3,
+                   pointBackgroundColor:'#3b82f6'}]},
+  options:{plugins:{legend:{display:false}},
+           scales:{x:{ticks:{color:'#94a3b8',maxTicksLimit:8},grid:{color:'#334155'}},
+                   y:{ticks:{color:'#94a3b8',stepSize:1},grid:{color:'#334155'}}},
+           responsive:true,maintainAspectRatio:false}
+});
+
+// ── Filtering ─────────────────────────────────────────────────────────────────
+function filterSev(sev) {
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('#findingsTable tbody tr').forEach(tr=>{
+    tr.style.display = (sev==='all' || tr.dataset.severity===sev) ? '' : 'none';
+  });
+}
+
+// ── Sorting ───────────────────────────────────────────────────────────────────
+let sortDir = {};
+function sortTable(col) {
+  const tbody = document.querySelector('#findingsTable tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const dir = sortDir[col] = -(sortDir[col]||0) || 1;
+  rows.sort((a,b)=>{
+    const ta = a.cells[col]?.textContent.trim()||'';
+    const tb = b.cells[col]?.textContent.trim()||'';
+    return dir*(isNaN(ta-tb) ? ta.localeCompare(tb) : ta-tb);
+  });
+  rows.forEach(r=>tbody.appendChild(r));
+}
+</script>
+</body>
+</html>

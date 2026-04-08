@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Xizmatlar — VulnScan Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <link rel="stylesheet" href="/static/pages.css"/>
+</head>
+<body>
+
+<!-- ════════════ NAV ════════════ -->
+<header class="site-nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-logo-svg">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <div>
+        <span class="brand">VulnScan<span class="brand-accent">Pro</span></span>
+        <span class="brand-sub">Web Security Scanner</span>
+      </div>
+    </a>
+    <nav class="nav-links">
+      <a href="/"         class="nav-link">Bosh Sahifa</a>
+      <a href="/scan"     class="nav-link">Skaner</a>
+      <a href="/services" class="nav-link active">Xizmatlar</a>
+      <a href="/about"    class="nav-link">Haqida</a>
+      <a href="/contact"  class="nav-link">Aloqa</a>
+    </nav>
+    <div class="nav-right">
+      <span class="auth-tag">FAQAT RUXSAT BERILGAN TESTLAR</span>
+      <a href="/scan" class="nav-cta">Skanerlash →</a>
+    </div>
+    <button class="nav-burger" onclick="toggleMobileNav()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu hidden" id="mobile-menu">
+    <a href="/"         class="mob-link">Bosh Sahifa</a>
+    <a href="/scan"     class="mob-link">Skaner</a>
+    <a href="/services" class="mob-link active">Xizmatlar</a>
+    <a href="/about"    class="mob-link">Haqida</a>
+    <a href="/contact"  class="mob-link">Aloqa</a>
+  </div>
+</header>
+
+<!-- ════════════ PAGE HERO ════════════ -->
+<div class="page-hero-bar">
+  <div class="pg-container">
+    <div class="phb-badge">XIZMATLAR</div>
+    <h1 class="phb-h1">Skan Modullari va Imkoniyatlar</h1>
+    <p class="phb-p">VulnScan Pro 8 ta professional zaiflik moduli yordamida veb ilovalaringizni chuqur tahlil qiladi.</p>
+  </div>
+</div>
+
+<!-- ════════════ MODULES ════════════ -->
+<section class="pg-section">
+  <div class="pg-container">
+    <div class="section-head">
+      <div class="section-badge">8 MODUL</div>
+      <h2 class="section-h2">Zaiflik Modullari</h2>
+    </div>
+
+    <!-- SQL Injection -->
+    <div class="svc-card">
+      <div class="svc-card-head">
+        <div class="svc-emoji-wrap" style="--c:#ff2d55;--cb:rgba(255,45,85,.1)">💉</div>
+        <div class="svc-head-text">
+          <h3 class="svc-title">SQL In'ektsiya Skaneri</h3>
+          <span class="svc-sev sc-badge">Kritik xavf</span>
+        </div>
+      </div>
+      <p class="svc-desc">
+        Ma'lumotlar bazasiga ruxsatsiz kirish imkonini beradigan SQL injection zaifliklarini aniqlaydi.
+        Ilova kirish maydonlari, URL parametrlari va cookie'larda maxsus payload'lar sinab ko'riladi.
+      </p>
+      <div class="svc-checks">
+        <div class="svc-check"><span class="chk-ico">✓</span> Error-based SQL injection</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Boolean-based blind injection</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Time-based blind injection</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> UNION-based extraction test</div>
+      </div>
+    </div>
+
+    <!-- XSS -->
+    <div class="svc-card">
+      <div class="svc-card-head">
+        <div class="svc-emoji-wrap" style="--c:#ff7730;--cb:rgba(255,119,48,.1)">🎭</div>
+        <div class="svc-head-text">
+          <h3 class="svc-title">Cross-Site Scripting (XSS)</h3>
+          <span class="svc-sev sh-badge">Yuqori xavf</span>
+        </div>
+      </div>
+      <p class="svc-desc">
+        Brauzerda ixtiyoriy JavaScript kodni bajarish imkonini beradigan XSS zaifliklarini topadi.
+        Foydalanuvchi sessiyasini o'g'irlash, phishing va keylogger hujumlarida ishlatiladi.
+      </p>
+      <div class="svc-checks">
+        <div class="svc-check"><span class="chk-ico">✓</span> Reflected XSS (URL parametrlarida)</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Stored XSS (ma'lumotlar bazasida)</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> DOM-based XSS</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> 50+ zamonaviy XSS payload'lari</div>
+      </div>
+    </div>
+
+    <!-- CORS -->
+    <div class="svc-card">
+      <div class="svc-card-head">
+        <div class="svc-emoji-wrap" style="--c:#ff7730;--cb:rgba(255,119,48,.1)">🌐</div>
+        <div class="svc-head-text">
+          <h3 class="svc-title">CORS Noto'g'ri Sozlama</h3>
+          <span class="svc-sev sh-badge">Yuqori xavf</span>
+        </div>
+      </div>
+      <p class="svc-desc">
+        Cross-Origin Resource Sharing (CORS) politikasidagi xatolarni aniqlaydi.
+        Noto'g'ri sozlangan CORS boshqa saytlarga API so'rovlar yuborish imkonini beradi.
+      </p>
+      <div class="svc-checks">
+        <div class="svc-check"><span class="chk-ico">✓</span> Wildcard origin (*) tekshiruvi</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Credentials bilan birga wildcard</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Reflection attack tekshiruvi</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Null origin qabul qilish</div>
+      </div>
+    </div>
+
+    <!-- Security Headers -->
+    <div class="svc-card">
+      <div class="svc-card-head">
+        <div class="svc-emoji-wrap" style="--c:#ffc107;--cb:rgba(255,193,7,.1)">🛡️</div>
+        <div class="svc-head-text">
+          <h3 class="svc-title">Xavfsizlik Sarlavhalari</h3>
+          <span class="svc-sev sm-badge">O'rta xavf</span>
+        </div>
+      </div>
+      <p class="svc-desc">
+        HTTP javob sarlavhalarida muhim xavfsizlik sozlamalarining mavjudligini tekshiradi.
+        Etishmayotgan sarlavhalar bir qator hujumlarni osonlashtirishi mumkin.
+      </p>
+      <div class="svc-checks">
+        <div class="svc-check"><span class="chk-ico">✓</span> Strict-Transport-Security (HSTS)</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Content-Security-Policy (CSP)</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> X-Frame-Options (Clickjacking)</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> X-Content-Type-Options, Referrer-Policy</div>
+      </div>
+    </div>
+
+    <!-- SSL/TLS -->
+    <div class="svc-card">
+      <div class="svc-card-head">
+        <div class="svc-emoji-wrap" style="--c:#ffc107;--cb:rgba(255,193,7,.1)">🔒</div>
+        <div class="svc-head-text">
+          <h3 class="svc-title">SSL/TLS Tahlili</h3>
+          <span class="svc-sev sm-badge">O'rta xavf</span>
+        </div>
+      </div>
+      <p class="svc-desc">
+        HTTPS sertifikati va TLS protokoli konfiguratsiyasini chuqur tekshiradi.
+        Eskirgan protokollar, zaif sertifikatlar va noto'g'ri sozlamalar aniqlanadi.
+      </p>
+      <div class="svc-checks">
+        <div class="svc-check"><span class="chk-ico">✓</span> Sertifikat muddati va ishonchlilik</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> TLS 1.0/1.1 (eskirgan) aniqlanishi</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Zaif cipher suite'lar</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Self-signed sertifikat tekshiruvi</div>
+      </div>
+    </div>
+
+    <!-- Directory Listing -->
+    <div class="svc-card">
+      <div class="svc-card-head">
+        <div class="svc-emoji-wrap" style="--c:#ffc107;--cb:rgba(255,193,7,.1)">📁</div>
+        <div class="svc-head-text">
+          <h3 class="svc-title">Directory Listing & Sezgir Fayllar</h3>
+          <span class="svc-sev sm-badge">O'rta xavf</span>
+        </div>
+      </div>
+      <p class="svc-desc">
+        Veb-serverda ochiq kataloglar va sezgir fayllarni qidiradi.
+        .env, .git, backup, konfiguratsiya fayllarining ochiq qolishi jiddiy xavf hisoblanadi.
+      </p>
+      <div class="svc-checks">
+        <div class="svc-check"><span class="chk-ico">✓</span> Ochiq kataloglar (Apache, Nginx)</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> .env, .git, .htaccess fayllar</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Backup fayllar (.bak, .old, ~)</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Admin panel, phpinfo topish</div>
+      </div>
+    </div>
+
+    <!-- Port Scanner -->
+    <div class="svc-card">
+      <div class="svc-card-head">
+        <div class="svc-emoji-wrap" style="--c:#00e87a;--cb:rgba(0,232,122,.1)">🔌</div>
+        <div class="svc-head-text">
+          <h3 class="svc-title">Port Skaneri</h3>
+          <span class="svc-sev sl-badge">Past xavf</span>
+        </div>
+      </div>
+      <p class="svc-desc">
+        Maqsad serverda ochiq portlar va ularga bog'liq xizmatlarni aniqlaydi.
+        Keraksiz ochiq portlar hujum yuzasini kengaytiradi.
+      </p>
+      <div class="svc-checks">
+        <div class="svc-check"><span class="chk-ico">✓</span> Keng tarqalgan portlar tekshiruvi</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Xizmat identifikatsiyasi (SSH, FTP, DB)</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Ma'muriy portlar (3306, 5432, 6379)</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Async parallel skanerlash</div>
+      </div>
+    </div>
+
+    <!-- Open Redirect -->
+    <div class="svc-card">
+      <div class="svc-card-head">
+        <div class="svc-emoji-wrap" style="--c:#00e87a;--cb:rgba(0,232,122,.1)">↪️</div>
+        <div class="svc-head-text">
+          <h3 class="svc-title">Ochiq Yo'naltirish (Open Redirect)</h3>
+          <span class="svc-sev sl-badge">Past xavf</span>
+        </div>
+      </div>
+      <p class="svc-desc">
+        URL parametrlari orqali foydalanuvchini boshqa saytga yo'naltirish imkoniyatini tekshiradi.
+        Phishing va OAuth token o'g'irlash hujumlarida ishlatiladi.
+      </p>
+      <div class="svc-checks">
+        <div class="svc-check"><span class="chk-ico">✓</span> redirect=, url=, next= parametrlar</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Encoding bypass test</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Protocol-relative URL tekshiruvi</div>
+        <div class="svc-check"><span class="chk-ico">✓</span> Meta refresh redirect aniqlash</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ SCAN PROFILES ════════════ -->
+<section class="pg-section pg-section-alt">
+  <div class="pg-container">
+    <div class="section-head">
+      <div class="section-badge">SKAN PROFILLARI</div>
+      <h2 class="section-h2">Ehtiyojingizga Mos Profil</h2>
+      <p class="section-sub">3 ta profil orasidan maqsadingizga eng mos kelganini tanlang.</p>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th class="tbl-feature-col">Modul / Xususiyat</th>
+            <th>
+              <div class="tbl-prof-head">
+                <span class="tbl-prof-icon">⚡</span>
+                <span class="tbl-prof-name">Tez</span>
+                <span class="tbl-prof-sub">Quick</span>
+              </div>
+            </th>
+            <th class="tbl-featured-col">
+              <div class="tbl-prof-badge">TAVSIYA</div>
+              <div class="tbl-prof-head">
+                <span class="tbl-prof-icon">🔍</span>
+                <span class="tbl-prof-name">To'liq</span>
+                <span class="tbl-prof-sub">Full</span>
+              </div>
+            </th>
+            <th>
+              <div class="tbl-prof-head">
+                <span class="tbl-prof-icon">🕵️</span>
+                <span class="tbl-prof-name">Yashirin</span>
+                <span class="tbl-prof-sub">Stealth</span>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="tbl-group-row">
+            <td colspan="4">⏱️ Taxminiy vaqt</td>
+          </tr>
+          <tr>
+            <td class="tbl-feat">Skan davomiyligi</td>
+            <td><span class="tbl-val tbl-time">30–60 son.</span></td>
+            <td class="tbl-featured-col"><span class="tbl-val tbl-time">2–5 daq.</span></td>
+            <td><span class="tbl-val tbl-time">3–7 daq.</span></td>
+          </tr>
+          <tr>
+            <td class="tbl-feat">Tezlik / Yuklanish</td>
+            <td><span class="tbl-badge tbl-green">Juda tez</span></td>
+            <td class="tbl-featured-col"><span class="tbl-badge tbl-yellow">O'rtacha</span></td>
+            <td><span class="tbl-badge tbl-blue">Sekin (xavfsiz)</span></td>
+          </tr>
+
+          <tr class="tbl-group-row">
+            <td colspan="4">🔒 Modullar</td>
+          </tr>
+          <tr>
+            <td class="tbl-feat">SSL/TLS Tahlili</td>
+            <td><span class="tbl-yes">✓</span></td>
+            <td class="tbl-featured-col"><span class="tbl-yes">✓</span></td>
+            <td><span class="tbl-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="tbl-feat">Xavfsizlik Sarlavhalari</td>
+            <td><span class="tbl-yes">✓</span></td>
+            <td class="tbl-featured-col"><span class="tbl-yes">✓</span></td>
+            <td><span class="tbl-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="tbl-feat">Directory Listing</td>
+            <td><span class="tbl-yes">✓</span></td>
+            <td class="tbl-featured-col"><span class="tbl-yes">✓</span></td>
+            <td><span class="tbl-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="tbl-feat">Sezgir Fayllar (.env, .git)</td>
+            <td><span class="tbl-yes">✓</span></td>
+            <td class="tbl-featured-col"><span class="tbl-yes">✓</span></td>
+            <td><span class="tbl-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="tbl-feat">SQL In'ektsiya</td>
+            <td><span class="tbl-no">—</span></td>
+            <td class="tbl-featured-col"><span class="tbl-yes">✓</span></td>
+            <td><span class="tbl-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="tbl-feat">XSS (Reflected / Stored)</td>
+            <td><span class="tbl-no">—</span></td>
+            <td class="tbl-featured-col"><span class="tbl-yes">✓</span></td>
+            <td><span class="tbl-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="tbl-feat">CORS Noto'g'ri Sozlama</td>
+            <td><span class="tbl-no">—</span></td>
+            <td class="tbl-featured-col"><span class="tbl-yes">✓</span></td>
+            <td><span class="tbl-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="tbl-feat">Open Redirect</td>
+            <td><span class="tbl-no">—</span></td>
+            <td class="tbl-featured-col"><span class="tbl-yes">✓</span></td>
+            <td><span class="tbl-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="tbl-feat">Port Skaneri</td>
+            <td><span class="tbl-no">—</span></td>
+            <td class="tbl-featured-col"><span class="tbl-yes">✓</span></td>
+            <td><span class="tbl-no">—</span></td>
+          </tr>
+          <tr>
+            <td class="tbl-feat">Crawler (sahifalarni kuzatish)</td>
+            <td><span class="tbl-no">—</span></td>
+            <td class="tbl-featured-col"><span class="tbl-yes">✓</span></td>
+            <td><span class="tbl-yes">✓</span></td>
+          </tr>
+
+          <tr class="tbl-group-row">
+            <td colspan="4">⚙️ Qo'shimcha</td>
+          </tr>
+          <tr>
+            <td class="tbl-feat">IDS/WAF dan qochish</td>
+            <td><span class="tbl-no">—</span></td>
+            <td class="tbl-featured-col"><span class="tbl-no">—</span></td>
+            <td><span class="tbl-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="tbl-feat">Robots.txt ga rioya</td>
+            <td><span class="tbl-yes">✓</span></td>
+            <td class="tbl-featured-col"><span class="tbl-yes">✓</span></td>
+            <td><span class="tbl-yes">✓</span></td>
+          </tr>
+          <tr>
+            <td class="tbl-feat">Mos holat</td>
+            <td><span class="tbl-badge tbl-cyan">Kundalik monitoring</span></td>
+            <td class="tbl-featured-col"><span class="tbl-badge tbl-cyan">To'liq audit</span></td>
+            <td><span class="tbl-badge tbl-cyan">Ishlab turgan tizim</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ REPORT FORMAT ════════════ -->
+<section class="pg-section">
+  <div class="pg-container">
+    <div class="section-head">
+      <div class="section-badge">HISOBOT</div>
+      <h2 class="section-h2">Hisobot Formati</h2>
+      <p class="section-sub">Har bir topilgan zaiflik uchun quyidagi ma'lumotlar taqdim etiladi.</p>
+    </div>
+
+    <div class="tbl-wrap">
+      <table class="rep-table">
+        <thead>
+          <tr>
+            <th style="width:48px"></th>
+            <th>Maydon</th>
+            <th>Tavsif</th>
+            <th>Misol</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="rep-tbl-icon">🎯</td>
+            <td class="rep-tbl-name">CVSS Score</td>
+            <td class="rep-tbl-desc">Xalqaro CVSS v3 standartida zaiflik xavf bali (0.0 – 10.0)</td>
+            <td><span class="cvss-badge cvss-c">9.8 Kritik</span></td>
+          </tr>
+          <tr>
+            <td class="rep-tbl-icon">📊</td>
+            <td class="rep-tbl-name">Og'irlik darajasi</td>
+            <td class="rep-tbl-desc">Kritik / Yuqori / O'rta / Past / Ma'lumot — rangli belgi bilan</td>
+            <td><span class="sc-badge svc-sev">Kritik</span></td>
+          </tr>
+          <tr>
+            <td class="rep-tbl-icon">🏷️</td>
+            <td class="rep-tbl-name">CWE ID</td>
+            <td class="rep-tbl-desc">Common Weakness Enumeration — zaiflik turi bo'yicha standart identifikator</td>
+            <td><code class="tbl-code">CWE-89</code></td>
+          </tr>
+          <tr>
+            <td class="rep-tbl-icon">📋</td>
+            <td class="rep-tbl-name">OWASP Kategoriya</td>
+            <td class="rep-tbl-desc">OWASP Top 10 ro'yxatiga muvofiqlik va yo'naltirish havolasi</td>
+            <td><code class="tbl-code">A03:2021</code></td>
+          </tr>
+          <tr>
+            <td class="rep-tbl-icon">🔗</td>
+            <td class="rep-tbl-name">Zaif URL</td>
+            <td class="rep-tbl-desc">Zaiflik topilgan aniq sahifa manzili va parametr nomi</td>
+            <td><code class="tbl-code">/login?id=</code></td>
+          </tr>
+          <tr>
+            <td class="rep-tbl-icon">💉</td>
+            <td class="rep-tbl-name">Payload</td>
+            <td class="rep-tbl-desc">Zaiflikni ishga tushirgan aniq sinov ma'lumoti (hujum namunasi)</td>
+            <td><code class="tbl-code">' OR 1=1--</code></td>
+          </tr>
+          <tr>
+            <td class="rep-tbl-icon">🔬</td>
+            <td class="rep-tbl-name">Evidence</td>
+            <td class="rep-tbl-desc">Server javobi, HTTP kodi, sarlavhalar — zaiflik tasdiqlovchi dalil</td>
+            <td><code class="tbl-code">HTTP 500 · SQL error</code></td>
+          </tr>
+          <tr>
+            <td class="rep-tbl-icon">🇺🇿</td>
+            <td class="rep-tbl-name">O'zbek Tushuntirish</td>
+            <td class="rep-tbl-desc">Zaiflik nima ekani, xavfi, qanday ishlashi — o'zbek tilida to'liq</td>
+            <td><span class="tbl-badge tbl-green">Batafsil matn</span></td>
+          </tr>
+          <tr>
+            <td class="rep-tbl-icon">🛠️</td>
+            <td class="rep-tbl-name">Tuzatish Tavsiyasi</td>
+            <td class="rep-tbl-desc">Zaiflikni bartaraf etish uchun kod darajasidagi amaliy tavsiyalar</td>
+            <td><span class="tbl-badge tbl-green">Kod misoli</span></td>
+          </tr>
+          <tr>
+            <td class="rep-tbl-icon">📥</td>
+            <td class="rep-tbl-name">Eksport Formati</td>
+            <td class="rep-tbl-desc">To'liq hisobotni yuklab olish — dasturchilar va menejerlar uchun</td>
+            <td>
+              <span class="tbl-badge tbl-cyan">JSON</span>
+              <span class="tbl-badge tbl-cyan" style="margin-left:.3rem">HTML</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="pg-section pg-cta-section">
+  <div class="pg-container">
+    <div class="cta-card">
+      <div class="cta-glow"></div>
+      <div class="cta-inner">
+        <h2 class="cta-h2">Skanerlashni Boshlang</h2>
+        <p class="cta-p">Barcha modullar bepul. Faqat ruxsat berilgan maqsadlar uchun foydalaning.</p>
+        <a href="/scan" class="btn-primary btn-lg">Skanerlash →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer class="site-footer">
+  <div class="pg-container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="color:var(--cyan)">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span class="brand">VulnScan<span class="brand-accent">Pro</span></span>
+      </div>
+      <nav class="footer-links">
+        <a href="/"         class="footer-link">Bosh Sahifa</a>
+        <a href="/scan"     class="footer-link">Skaner</a>
+        <a href="/services" class="footer-link">Xizmatlar</a>
+        <a href="/about"    class="footer-link">Haqida</a>
+        <a href="/contact"  class="footer-link">Aloqa</a>
+      </nav>
+      <div class="footer-note">Faqat ruxsat berilgan testlar uchun · © 2026 VulnScan Pro</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+function toggleMobileNav() {
+  const m = document.getElementById('mobile-menu');
+  m.classList.toggle('hidden');
+}
+</script>
+</body>
+</html>

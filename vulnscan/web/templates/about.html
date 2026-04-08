@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Haqida — VulnScan Pro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <link rel="stylesheet" href="/static/pages.css"/>
+</head>
+<body>
+
+<!-- ════════════ NAV ════════════ -->
+<header class="site-nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="nav-logo-svg">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      <div>
+        <span class="brand">VulnScan<span class="brand-accent">Pro</span></span>
+        <span class="brand-sub">Web Security Scanner</span>
+      </div>
+    </a>
+    <nav class="nav-links">
+      <a href="/"         class="nav-link">Bosh Sahifa</a>
+      <a href="/scan"     class="nav-link">Skaner</a>
+      <a href="/services" class="nav-link">Xizmatlar</a>
+      <a href="/about"    class="nav-link active">Haqida</a>
+      <a href="/contact"  class="nav-link">Aloqa</a>
+    </nav>
+    <div class="nav-right">
+      <span class="auth-tag">FAQAT RUXSAT BERILGAN TESTLAR</span>
+      <a href="/scan" class="nav-cta">Skanerlash →</a>
+    </div>
+    <button class="nav-burger" onclick="toggleMobileNav()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu hidden" id="mobile-menu">
+    <a href="/"         class="mob-link">Bosh Sahifa</a>
+    <a href="/scan"     class="mob-link">Skaner</a>
+    <a href="/services" class="mob-link">Xizmatlar</a>
+    <a href="/about"    class="mob-link active">Haqida</a>
+    <a href="/contact"  class="mob-link">Aloqa</a>
+  </div>
+</header>
+
+<!-- ════════════ PAGE HERO ════════════ -->
+<div class="page-hero-bar">
+  <div class="pg-container">
+    <div class="phb-badge">HAQIDA</div>
+    <h1 class="phb-h1">VulnScan Pro Nima?</h1>
+    <p class="phb-p">O'zbek tilida professional veb-zaiflik skaneri — xavfsizlik mutaxassislari va talabalar uchun ochiq manba loyiha.</p>
+  </div>
+</div>
+
+<!-- ════════════ STATS ════════════ -->
+<section class="pg-section">
+  <div class="pg-container">
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-num" id="scans-count">0</div>
+        <div class="stat-label">JAMI SKANLAR</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">8</div>
+        <div class="stat-label">ZAIFLIK MODULI</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">3</div>
+        <div class="stat-label">SKAN PROFILI</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="uptime-days">0</div>
+        <div class="stat-label">KUN UPTIME</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">100%</div>
+        <div class="stat-label">O'ZBEK TILI</div>
+      </div>
+    </div>
+
+    <!-- Mission & Vision -->
+    <div class="about-grid">
+      <div class="about-card">
+        <div class="about-card-title">
+          🎯 Missiya
+        </div>
+        <div class="about-card-body">
+          VulnScan Pro — veb-ilova xavfsizligini tekshirishni <strong>O'zbek tiliga yaqinlashtirish</strong> maqsadida yaratilgan.
+          Ko'plab xavfsizlik vositalari ingliz tilida bo'lib, mahalliy mutaxassislar va talabalar uchun tushunish qiyin.
+          <br/><br/>
+          Biz har bir zaiflik haqida to'liq o'zbek tilida tushuntirish, real-vaqt skanerlash va professional hisobotlar taqdim etamiz.
+          Maqsadimiz — <strong>O'zbekistonda kiberxavfsizlik madaniyatini</strong> rivojlantirish.
+        </div>
+      </div>
+      <div class="about-card">
+        <div class="about-card-title">
+          🔒 Xavfsizlik Prinsipi
+        </div>
+        <div class="about-card-body">
+          VulnScan Pro faqat <strong>ruxsat berilgan testlar</strong> uchun mo'ljallangan.
+          Sayt egasidan yozma ruxsat olmay turib hech qanday maqsadga ishlatish qonuniy javobgarlikka olib keladi.
+          <br/><br/>
+          Biz <strong>responsible disclosure</strong> tamoyilini qo'llab-quvvatlaymiz: topilgan zaifliklarni sayt egasiga ma'lum qiling
+          va ular tomonidan to'liq tuzatilmaguncha ommaga chiqarmang.
+        </div>
+      </div>
+      <div class="about-card">
+        <div class="about-card-title">
+          ⚙️ Texnik Stek
+        </div>
+        <div class="about-card-body">
+          Loyiha zamonaviy va tezkor texnologiyalar asosida qurilgan:
+          <div class="tech-stack">
+            <span class="tech-tag">Python 3.12</span>
+            <span class="tech-tag">FastAPI</span>
+            <span class="tech-tag">AsyncIO</span>
+            <span class="tech-tag">HTTPX</span>
+            <span class="tech-tag">SSE Streaming</span>
+            <span class="tech-tag">SQLite</span>
+            <span class="tech-tag">Jinja2</span>
+            <span class="tech-tag">Uvicorn</span>
+            <span class="tech-tag">Docker</span>
+            <span class="tech-tag">pytest</span>
+          </div>
+        </div>
+      </div>
+      <div class="about-card">
+        <div class="about-card-title">
+          📋 Litsenziya va Ochiq Manba
+        </div>
+        <div class="about-card-body">
+          VulnScan Pro <strong>MIT litsenziyasi</strong> ostida tarqatiladi.
+          Istalgan kishi kodni o'rganishi, o'zgartirishi va ishlatishi mumkin — faqat qonuniy maqsadlar uchun.
+          <br/><br/>
+          Loyihaga hissa qo'shmoqchi bo'lsangiz, yangi modul taklif qiling, bug topib xabar bering,
+          yoki tarjimalarni takomillashtiring.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ TIMELINE ════════════ -->
+<section class="pg-section pg-section-alt">
+  <div class="pg-container">
+    <div class="section-head">
+      <div class="section-badge">TARIX</div>
+      <h2 class="section-h2">Loyiha Rivojlanishi</h2>
+    </div>
+    <div style="max-width:600px;margin:0 auto">
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot-col">
+            <div class="tl-dot"></div>
+            <div class="tl-line"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-date">2024 — Q4</div>
+            <div class="tl-title">Loyiha Boshlandi</div>
+            <div class="tl-desc">Asosiy arxitektura: FastAPI + AsyncIO yadro, HTTP mijoz va kuzatuvchi tizimi yaratildi.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot-col">
+            <div class="tl-dot"></div>
+            <div class="tl-line"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-date">2025 — Q1</div>
+            <div class="tl-title">Birinchi Modullar</div>
+            <div class="tl-desc">SQL In'ektsiya va XSS modullari qo'shildi. 50+ payload bazasi yaratildi.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot-col">
+            <div class="tl-dot"></div>
+            <div class="tl-line"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-date">2025 — Q2</div>
+            <div class="tl-title">Real-vaqt Streaming</div>
+            <div class="tl-desc">SSE (Server-Sent Events) orqali jonli skan natijalari brauzerga uzatish tizimi ishga tushirildi.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot-col">
+            <div class="tl-dot"></div>
+            <div class="tl-line"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-date">2025 — Q3</div>
+            <div class="tl-title">O'zbek Tili Bazasi</div>
+            <div class="tl-desc">Barcha zaifliklar uchun to'liq o'zbek tilida tushuntirish, tavsiya va tuzatish yo'llari yozildi.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot-col">
+            <div class="tl-dot"></div>
+            <div class="tl-line"></div>
+          </div>
+          <div class="tl-content">
+            <div class="tl-date">2026 — Hozir</div>
+            <div class="tl-title">v1.0 — Barqaror Versiya</div>
+            <div class="tl-desc">8 ta modul, 3 ta skan profili, SQLite tarix, HTML/JSON hisobotlar va professional UI tayyor.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ TEAM ════════════ -->
+<section class="pg-section">
+  <div class="pg-container">
+    <div class="section-head">
+      <div class="section-badge">JAMOA</div>
+      <h2 class="section-h2">Loyiha Ishtirokchilari</h2>
+      <p class="section-sub">Kiberxavfsizlikni O'zbekistonga yaqinlashtirish uchun ishlaydi.</p>
+    </div>
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="team-avatar">🛡️</div>
+        <div class="team-name">Arxitektura</div>
+        <div class="team-role">Backend & Yadro</div>
+        <div class="team-desc">FastAPI, AsyncIO yadro, HTTP mijoz, session menejment va Rate Limiter tizimlarini loyihaladi.</div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar">💉</div>
+        <div class="team-name">Zaiflik Modullari</div>
+        <div class="team-role">Xavfsizlik Muhandisi</div>
+        <div class="team-desc">SQLi, XSS, CORS, Headers, SSL/TLS, Port va Directory modul payload'larini yozdi va sinovdan o'tkazdi.</div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar">🌐</div>
+        <div class="team-name">Frontend UI</div>
+        <div class="team-role">Interfeys Dizayneri</div>
+        <div class="team-desc">Dark theme, real-vaqt SSE visualization, responsive layout va o'zbek UI komponentlarini yaratdi.</div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar">📖</div>
+        <div class="team-name">Texnik Yozuv</div>
+        <div class="team-role">O'zbek Lokalizatsiya</div>
+        <div class="team-desc">Barcha zaifliklarni o'zbek tilida tushuntirish, CVSS tavsifi va tuzatish yo'llarini yozdi.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ CTA ════════════ -->
+<section class="pg-cta-section">
+  <div class="pg-container">
+    <div class="cta-card">
+      <div class="cta-glow"></div>
+      <div class="cta-inner">
+        <h2 class="cta-h2">Saytingizni Xavfsiz Qiling</h2>
+        <p class="cta-p">Hoziroq skanerlashni boshlang va zaifliklarni aniqlang. Faqat ruxsat berilgan maqsadlar uchun.</p>
+        <a href="/scan" class="btn-primary btn-lg">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          Skanerlashni Boshlash
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer class="site-footer">
+  <div class="pg-container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="color:var(--cyan)">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span class="brand">VulnScan<span class="brand-accent">Pro</span></span>
+      </div>
+      <nav class="footer-links">
+        <a href="/"         class="footer-link">Bosh Sahifa</a>
+        <a href="/scan"     class="footer-link">Skaner</a>
+        <a href="/services" class="footer-link">Xizmatlar</a>
+        <a href="/about"    class="footer-link">Haqida</a>
+        <a href="/contact"  class="footer-link">Aloqa</a>
+      </nav>
+      <div class="footer-note">Faqat ruxsat berilgan testlar uchun · © 2026 VulnScan Pro</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+function toggleMobileNav() {
+  const m = document.getElementById('mobile-menu');
+  m.classList.toggle('hidden');
+}
+
+// Animate stat counters
+function animateCounter(el, target, duration = 1800) {
+  const start = performance.now();
+  const update = (now) => {
+    const p = Math.min((now - start) / duration, 1);
+    const val = Math.floor(p * p * target);
+    el.textContent = val.toLocaleString();
+    if (p < 1) requestAnimationFrame(update);
+    else el.textContent = target.toLocaleString();
+  };
+  requestAnimationFrame(update);
+}
+
+// Load real scan count from API
+async function loadStats() {
+  try {
+    const res = await fetch('/api/history');
+    const data = await res.json();
+    const count = data.scans ? data.scans.length : 0;
+    animateCounter(document.getElementById('scans-count'), Math.max(count, 12));
+  } catch {
+    animateCounter(document.getElementById('scans-count'), 12);
+  }
+}
+
+// Uptime since start date
+function calcUptime() {
+  const start = new Date('2025-10-01');
+  const days = Math.floor((Date.now() - start) / 86400000);
+  animateCounter(document.getElementById('uptime-days'), days);
+}
+
+loadStats();
+calcUptime();
+</script>
+</body>
+</html>

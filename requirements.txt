@@ -1,0 +1,15 @@
+httpx[http2]>=0.27
+aiosqlite>=0.20
+aiofiles>=23.2
+pydantic>=2.7
+click>=8.1
+rich>=13.7
+structlog>=24.1
+jinja2>=3.1
+python-dotenv>=1.0
+beautifulsoup4>=4.12
+lxml>=5.2
+# Web UI
+fastapi>=0.111
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9

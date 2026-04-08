@@ -1,0 +1,98 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vulnscan"
+version = "1.0.0"
+description = "Production-grade async web vulnerability scanner for authorized penetration testing"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "VulnScan Pro" }]
+keywords = ["security", "pentesting", "vulnerability-scanner", "web-security"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+]
+dependencies = [
+    "httpx[http2]>=0.27",
+    "aiosqlite>=0.20",
+    "aiofiles>=23.2",
+    "pydantic>=2.7",
+    "click>=8.1",
+    "rich>=13.7",
+    "structlog>=24.1",
+    "jinja2>=3.1",
+    "python-dotenv>=1.0",
+    "beautifulsoup4>=4.12",
+    "lxml>=5.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "pytest-cov>=5.0",
+    "respx>=0.21",
+    "mypy>=1.10",
+    "ruff>=0.4",
+    "types-beautifulsoup4",
+    "types-aiofiles",
+]
+
+[project.scripts]
+vulnscan = "vulnscan.main:cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["vulnscan*"]
+
+[tool.setuptools.package-data]
+"vulnscan" = ["wordlists/*.txt", "reporting/templates/*.j2"]
+
+# ── Ruff ──────────────────────────────────────────────────────────────────────
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["vulnscan", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "UP", "B", "SIM", "C4", "PIE", "RUF"]
+ignore = [
+    "B008",   # do not perform function calls in argument defaults (Click uses this)
+    "E501",   # line too long — ruff format handles this
+    "RUF012", # mutable class attributes — Pydantic models use ClassVar workaround
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["vulnscan"]
+
+# ── Mypy ──────────────────────────────────────────────────────────────────────
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = false
+show_error_codes = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["bs4.*", "respx.*", "aiosqlite.*"]
+ignore_missing_imports = true
+
+# ── Pytest ────────────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-v --tb=short"

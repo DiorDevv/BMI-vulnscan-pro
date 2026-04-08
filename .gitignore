@@ -1,0 +1,56 @@
+# ── Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Virtual Environment ────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Database / Scan Results ────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+reports/
+*.html.report
+*.json.report
+
+# ── Test & Coverage ────────────────────────────────────────
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.pytest_cache/
+.tox/
+
+# ── Type checking ──────────────────────────────────────────
+.mypy_cache/
+.ruff_cache/
+
+# ── IDE / Editor ───────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Secrets / Config ───────────────────────────────────────
+.env
+.env.*
+secrets.yaml
+config.local.*
+
+# ── Logs ──────────────────────────────────────────────────
+*.log
+logs/

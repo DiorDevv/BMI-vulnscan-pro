@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>VulnScan Pro — Zaiflik Skaneri</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ════════════════ HEADER ════════════════ -->
+<header id="top-header">
+  <div class="hdr-left">
+    <svg class="logo-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+    <div>
+      <span class="brand">VulnScan<span class="brand-accent">Pro</span></span>
+      <span class="brand-sub">Web Security Scanner</span>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <nav style="display:flex;gap:.25rem;margin-right:.5rem">
+      <a href="/"         style="color:var(--t3);text-decoration:none;font-size:.78rem;padding:5px 10px;border-radius:6px;transition:.15s" onmouseover="this.style.color='var(--t1)'" onmouseout="this.style.color='var(--t3)'">Bosh Sahifa</a>
+      <a href="/services" style="color:var(--t3);text-decoration:none;font-size:.78rem;padding:5px 10px;border-radius:6px;transition:.15s" onmouseover="this.style.color='var(--t1)'" onmouseout="this.style.color='var(--t3)'">Xizmatlar</a>
+      <a href="/about"    style="color:var(--t3);text-decoration:none;font-size:.78rem;padding:5px 10px;border-radius:6px;transition:.15s" onmouseover="this.style.color='var(--t1)'" onmouseout="this.style.color='var(--t3)'">Haqida</a>
+      <a href="/contact"  style="color:var(--t3);text-decoration:none;font-size:.78rem;padding:5px 10px;border-radius:6px;transition:.15s" onmouseover="this.style.color='var(--t1)'" onmouseout="this.style.color='var(--t3)'">Aloqa</a>
+    </nav>
+    <span class="auth-tag">FAQAT RUXSAT BERILGAN TESTLAR UCHUN</span>
+    <button class="hbtn" onclick="toggleHistory()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      Tarix
+    </button>
+  </div>
+</header>
+
+<!-- ════════════════ INPUT SECTION ════════════════ -->
+<section id="sec-input">
+  <div class="hero-block">
+    <div class="hero-badge">v1.0.0 · Professional</div>
+    <h1 class="hero-h1">Veb Zaiflik Skaneri</h1>
+    <p class="hero-p">SQL In'ektsiya · XSS · CORS · Xavfsizlik Sarlavhalari · SSL/TLS · Portlar · Ochiq Yo'naltirishlar</p>
+  </div>
+
+  <div class="input-card" id="input-card">
+    <div class="input-row">
+      <div class="url-field" id="url-field">
+        <span class="url-proto">URL</span>
+        <input type="url" id="url-input" class="url-inp"
+          placeholder="https://manzil.uz yoki https://example.com"
+          autocomplete="off" spellcheck="false"/>
+      </div>
+      <button class="scan-btn" id="scan-btn" onclick="startScan()">
+        <svg id="scan-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <span id="scan-txt">SKANERLASH</span>
+      </button>
+    </div>
+
+    <div class="opts-row">
+      <div class="opt-item">
+        <span class="opt-lbl">Profil</span>
+        <select id="sel-profile" class="opt-sel">
+          <option value="quick">Tez — SSL + Sarlavhalar + Kataloglar</option>
+          <option value="full">To'liq — Barcha modullar + Crawl</option>
+          <option value="stealth">Yashirin — Sekin, port skanersiz</option>
+        </select>
+      </div>
+      <label class="opt-toggle">
+        <input type="checkbox" id="chk-ssl" class="tgl-inp"/>
+        <span class="tgl-sw"></span>
+        <span class="tgl-txt">SSL xatolarini e'tiborsiz qoldirish</span>
+      </label>
+      <label class="opt-toggle">
+        <input type="checkbox" id="chk-robots" class="tgl-inp"/>
+        <span class="tgl-sw"></span>
+        <span class="tgl-txt">robots.txt ni e'tiborsiz qoldirish</span>
+      </label>
+    </div>
+
+    <div id="form-err" class="form-err hidden"></div>
+  </div>
+
+  <div class="feature-row">
+    <div class="feat">
+      <span class="feat-icon">🔍</span>
+      <span class="feat-txt">8 zaiflik moduli</span>
+    </div>
+    <div class="feat">
+      <span class="feat-icon">⚡</span>
+      <span class="feat-txt">Real-vaqt streaming</span>
+    </div>
+    <div class="feat">
+      <span class="feat-icon">📊</span>
+      <span class="feat-txt">Batafsil hisobot</span>
+    </div>
+    <div class="feat">
+      <span class="feat-icon">🇺🇿</span>
+      <span class="feat-txt">O'zbek tilida tavsif</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ SCAN VIEW ════════════════ -->
+<section id="sec-scan" class="hidden">
+  <div class="scan-topbar">
+    <div class="stb-left">
+      <span id="stb-dot" class="stb-dot running"></span>
+      <div>
+        <div class="stb-target" id="stb-target">—</div>
+        <div class="stb-meta">
+          <span id="stb-profile" class="stb-badge">QUICK</span>
+          <span id="stb-status" class="stb-status">Skanerlash davom etmoqda…</span>
+        </div>
+      </div>
+    </div>
+    <div class="stb-right">
+      <span id="stb-timer" class="stb-timer">0s</span>
+      <button class="hbtn" onclick="newScan()">← Yangi skan</button>
+    </div>
+  </div>
+
+  <div class="scan-layout">
+
+    <!-- Terminal -->
+    <div class="term-card">
+      <div class="term-header">
+        <div class="term-dots">
+          <span class="td red"></span><span class="td ylw"></span><span class="td grn"></span>
+        </div>
+        <span class="term-name">vulnscan — jonli chiqish</span>
+        <button class="icon-btn" onclick="clearTerm()" title="Tozalash">⌫</button>
+      </div>
+      <div id="term-out" class="term-body">
+        <span class="tc">▌</span>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="scan-rpanel">
+
+      <!-- Risk gauge -->
+      <div class="rcard gauge-card">
+        <div class="rc-lbl">XAVF DARAJASI</div>
+        <div class="gauge-row">
+          <div class="gauge-wrap">
+            <svg viewBox="0 0 100 100" class="gauge-svg">
+              <circle class="g-bg" cx="50" cy="50" r="40"/>
+              <circle id="g-arc" class="g-arc" cx="50" cy="50" r="40"
+                stroke-dasharray="251.2" stroke-dashoffset="251.2"/>
+            </svg>
+            <div class="gauge-center">
+              <span id="g-val">—</span>
+              <span class="g-sub">/100</span>
+            </div>
+          </div>
+          <div class="gauge-info">
+            <div id="g-lbl" class="g-lbl">SKANERLASH…</div>
+            <div id="g-dur" class="g-dur">—</div>
+            <div id="g-total" class="g-total">0 ta zaiflik</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Severity counters -->
+      <div class="rcard">
+        <div class="rc-lbl">ZAIFLIKLAR</div>
+        <div class="sev-grid">
+          <div class="sev-cell sc"><span id="cnt-critical" class="sev-num">0</span><span class="sev-name">Kritik</span></div>
+          <div class="sev-cell sh"><span id="cnt-high"     class="sev-num">0</span><span class="sev-name">Yuqori</span></div>
+          <div class="sev-cell sm"><span id="cnt-medium"   class="sev-num">0</span><span class="sev-name">O'rta</span></div>
+          <div class="sev-cell sl"><span id="cnt-low"      class="sev-num">0</span><span class="sev-name">Past</span></div>
+          <div class="sev-cell si"><span id="cnt-info"     class="sev-num">0</span><span class="sev-name">Ma'lumot</span></div>
+        </div>
+      </div>
+
+      <!-- Modules -->
+      <div class="rcard">
+        <div class="rc-lbl">MODULLAR</div>
+        <div id="mod-list" class="mod-list"></div>
+      </div>
+
+      <!-- Live chart -->
+      <div class="rcard">
+        <div class="rc-lbl">TAQSIMOT</div>
+        <canvas id="chart-live" height="160"></canvas>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ RESULTS SECTION ════════════════ -->
+<section id="sec-results" class="hidden">
+
+  <!-- Results header -->
+  <div class="res-header">
+    <div class="res-hdr-left">
+      <div class="res-hdr-tag">✓ SKANERLASH YAKUNLANDI</div>
+      <h2 id="res-target" class="res-target">—</h2>
+      <div id="res-meta" class="res-meta"></div>
+    </div>
+    <div class="res-hdr-right">
+      <button class="exp-btn" onclick="exportJSON()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        JSON
+      </button>
+      <button class="exp-btn" onclick="exportCSV()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        CSV
+      </button>
+      <button class="hbtn" onclick="newScan()">← Yangi skan</button>
+    </div>
+  </div>
+
+  <!-- KPI cards -->
+  <div class="kpi-row" id="kpi-row"></div>
+
+  <!-- Main grid: charts + metrics -->
+  <div class="res-main-grid">
+    <div class="rcard">
+      <div class="rc-lbl">ZAIFLIK TURLARI</div>
+      <div class="chart-box"><canvas id="chart-types"></canvas></div>
+    </div>
+    <div class="rcard">
+      <div class="rc-lbl">JIDDIYLIK DARAJASI</div>
+      <div class="chart-box"><canvas id="chart-sev"></canvas></div>
+    </div>
+    <div class="rcard metrics-card">
+      <div class="rc-lbl">SKAN KO'RSATKICHLARI</div>
+      <div id="metrics-body" class="metrics-body"></div>
+    </div>
+  </div>
+
+  <!-- Findings section -->
+  <div class="findings-section">
+    <div class="findings-topbar">
+      <div class="findings-title-row">
+        <h3 class="findings-h3">Aniqlangan Zaifliklar</h3>
+        <span id="f-count" class="f-count-badge">0</span>
+      </div>
+      <div class="filter-bar">
+        <button class="fbtn active" data-f="all"      onclick="filterBy('all')">Barchasi</button>
+        <button class="fbtn fc"     data-f="critical" onclick="filterBy('critical')">Kritik</button>
+        <button class="fbtn fh"     data-f="high"     onclick="filterBy('high')">Yuqori</button>
+        <button class="fbtn fm"     data-f="medium"   onclick="filterBy('medium')">O'rta</button>
+        <button class="fbtn fl"     data-f="low"      onclick="filterBy('low')">Past</button>
+        <button class="fbtn fi"     data-f="info"     onclick="filterBy('info')">Ma'lumot</button>
+      </div>
+    </div>
+
+    <div id="findings-list" class="findings-list"></div>
+  </div>
+
+</section>
+
+<!-- ════════════════ HISTORY PANEL ════════════════ -->
+<aside id="hist-panel" class="hist-panel hidden">
+  <div class="hist-hdr">
+    <span class="hist-title">Skan Tarixi</span>
+    <button class="icon-btn" onclick="toggleHistory()">✕</button>
+  </div>
+  <div id="hist-body" class="hist-body">
+    <div class="loading-msg">Yuklanmoqda…</div>
+  </div>
+</aside>
+<div id="hist-bg" class="hist-bg hidden" onclick="toggleHistory()"></div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
