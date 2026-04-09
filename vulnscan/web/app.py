@@ -28,6 +28,7 @@ from ..main import ScanConfig, run_scan
 from ..storage.db import Database
 from ..utils.logger import configure_logging
 from ..utils.url_utils import is_valid_http_url
+from .telegram import TelegramNotifier
 
 BASE_DIR = Path(__file__).parent
 
@@ -36,6 +37,14 @@ BASE_DIR = Path(__file__).parent
 _active_queues: dict[str, asyncio.Queue[Any]] = {}
 # scan_id → {"status": ..., "result": ..., "error": ...}
 _scan_store: dict[str, dict[str, Any]] = {}
+
+# ── Contact rate limiting (IP → list of timestamps) ──────────────────────────
+_contact_timestamps: dict[str, list[float]] = {}
+_CONTACT_LIMIT = 3      # max xabarlar
+_CONTACT_WINDOW = 3600  # 1 soat (sekund)
+
+# ── Telegram notifier (singleton) ────────────────────────────────────────────
+_telegram = TelegramNotifier()
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 app = FastAPI(
@@ -176,6 +185,58 @@ async def scan_history() -> JSONResponse:
         return JSONResponse({"scans": rows})
     finally:
         await db.close()
+
+
+class ContactRequest(BaseModel):
+    name: str
+    email: str
+    subject: str
+    message: str
+    url: str | None = None
+
+
+@app.post("/api/contact")
+async def send_contact(req: ContactRequest, request: Request) -> JSONResponse:
+    # ── Validatsiya ──────────────────────────────────────────────────────────
+    if len(req.name.strip()) < 2:
+        return JSONResponse({"error": "Ism kamida 2 harf bo'lishi kerak"}, status_code=422)
+    if "@" not in req.email or "." not in req.email.split("@")[-1]:
+        return JSONResponse({"error": "Email manzil noto'g'ri"}, status_code=422)
+    if req.subject not in ("bug", "feature", "security", "help", "report", "other"):
+        return JSONResponse({"error": "Noto'g'ri mavzu"}, status_code=422)
+    if len(req.message.strip()) < 20:
+        return JSONResponse({"error": "Xabar kamida 20 belgi bo'lishi kerak"}, status_code=422)
+
+    # ── Rate limit (IP bo'yicha) ─────────────────────────────────────────────
+    client_ip = request.client.host if request.client else "unknown"
+    now = time.time()
+    timestamps = _contact_timestamps.get(client_ip, [])
+    # Eski yozuvlarni tozalash
+    timestamps = [t for t in timestamps if now - t < _CONTACT_WINDOW]
+    if len(timestamps) >= _CONTACT_LIMIT:
+        wait = int(_CONTACT_WINDOW - (now - timestamps[0]))
+        return JSONResponse(
+            {"error": f"Juda ko'p urinish. {wait // 60} daqiqadan so'ng qayta urinib ko'ring."},
+            status_code=429,
+        )
+    timestamps.append(now)
+    _contact_timestamps[client_ip] = timestamps
+
+    # ── Telegram bildirishnoma ───────────────────────────────────────────────
+    sent = await _telegram.notify_contact(
+        name=req.name.strip(),
+        email=req.email.strip(),
+        subject=req.subject,
+        message=req.message.strip(),
+        url=req.url.strip() if req.url else None,
+        ip=client_ip,
+    )
+
+    return JSONResponse({
+        "ok": True,
+        "telegram": sent,
+        "message": "Xabaringiz muvaffaqiyatli yuborildi!",
+    })
 
 
 @app.get("/health")

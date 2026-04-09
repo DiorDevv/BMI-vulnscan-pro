@@ -11,6 +11,10 @@ services:
         value: 10000
       - key: DB_PATH
         value: /data/vulnscan.db
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false          # qiymat Dashboard dan qo'lda kiritiladi (maxfiy)
+      - key: TELEGRAM_CHAT_ID
+        sync: false          # qiymat Dashboard dan qo'lda kiritiladi (maxfiy)
 
     # Doimiy disk — skan tarixi saqlanadi (1 GB bepul)
     disk:

@@ -9,10 +9,301 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="/static/style.css"/>
   <link rel="stylesheet" href="/static/pages.css"/>
+
+  <style>
+    /* ── Contact-specific overrides ── */
+
+    /* Form wrapper */
+    .contact-layout { display: grid; grid-template-columns: 1fr 340px; gap: 2rem; align-items: start; }
+    @media(max-width:900px){ .contact-layout { grid-template-columns: 1fr; } }
+
+    /* Card */
+    .cf-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .cf-card::before {
+      content:'';
+      position:absolute;top:0;left:0;right:0;height:3px;
+      background: linear-gradient(90deg, var(--cyan), var(--purple), var(--cyan));
+      background-size: 200% 100%;
+      animation: shimmer 3s linear infinite;
+    }
+    @keyframes shimmer { to { background-position: 200% 0; } }
+
+    .cf-card-title {
+      font-size: 1.15rem; font-weight: 700;
+      display: flex; align-items: center; gap: .6rem;
+      margin-bottom: 1.75rem; color: var(--t1);
+    }
+    .cf-card-title svg { color: var(--cyan); }
+
+    /* Input groups */
+    .cf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media(max-width:600px){ .cf-row { grid-template-columns: 1fr; } }
+
+    .cf-group { display: flex; flex-direction: column; gap: .4rem; margin-bottom: 1rem; }
+
+    .cf-label {
+      font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+      color: var(--t2); text-transform: uppercase;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .cf-label-req { color: var(--cyan); margin-left: 2px; }
+    .cf-char-count { font-size:.72rem; color:var(--t3); font-weight:400; letter-spacing:0; }
+
+    /* Inputs */
+    .cf-input, .cf-select, .cf-textarea {
+      width: 100%;
+      background: rgba(255,255,255,.04);
+      border: 1.5px solid var(--border);
+      border-radius: var(--rs);
+      color: var(--t1);
+      font-family: var(--f-body);
+      font-size: .9rem;
+      padding: .75rem 1rem;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+      outline: none;
+    }
+    .cf-input::placeholder, .cf-textarea::placeholder { color: var(--t3); }
+    .cf-input:focus, .cf-select:focus, .cf-textarea:focus {
+      border-color: var(--cyan);
+      background: rgba(0,200,240,.04);
+      box-shadow: 0 0 0 3px rgba(0,200,240,.1);
+    }
+    .cf-input.valid   { border-color: var(--green); }
+    .cf-input.invalid { border-color: var(--red);   }
+    .cf-select        { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238899bb' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.5rem; }
+    .cf-select option { background: var(--bg2); }
+    .cf-textarea      { resize: vertical; min-height: 130px; }
+
+    /* Validation hint */
+    .cf-hint {
+      font-size: .75rem; min-height: 1.1rem;
+      transition: color .2s;
+    }
+    .cf-hint.ok  { color: var(--green); }
+    .cf-hint.err { color: var(--red);   }
+
+    /* Checkbox */
+    .cf-check-row {
+      display: flex; align-items: flex-start; gap: .75rem;
+      padding: .9rem 1rem;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      border-radius: var(--rs);
+      cursor: pointer;
+    }
+    .cf-check-row input[type=checkbox] {
+      width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px;
+      accent-color: var(--cyan); cursor: pointer;
+    }
+    .cf-check-row label {
+      font-size: .82rem; color: var(--t2); cursor: pointer; line-height: 1.5;
+    }
+
+    /* Submit button */
+    .cf-btn {
+      width: 100%; margin-top: 1.25rem;
+      padding: .9rem 2rem;
+      background: linear-gradient(135deg, var(--cyan), #0099cc);
+      color: #000; font-weight: 700; font-size: .95rem;
+      border: none; border-radius: var(--rs);
+      cursor: pointer; position: relative; overflow: hidden;
+      transition: opacity .2s, transform .1s, box-shadow .2s;
+      display: flex; align-items: center; justify-content: center; gap: .5rem;
+    }
+    .cf-btn:hover:not(:disabled) {
+      box-shadow: 0 0 24px rgba(0,200,240,.4);
+      transform: translateY(-1px);
+    }
+    .cf-btn:active:not(:disabled) { transform: translateY(0); }
+    .cf-btn:disabled { opacity: .6; cursor: not-allowed; }
+    .cf-btn .btn-spinner {
+      width: 18px; height: 18px; display: none;
+      border: 2px solid rgba(0,0,0,.3);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .cf-btn.loading .btn-label { display: none; }
+    .cf-btn.loading .btn-spinner { display: block; }
+
+    /* Error toast */
+    .cf-toast {
+      display: none; margin-top: 1rem;
+      padding: .85rem 1rem;
+      background: rgba(255,45,85,.12);
+      border: 1px solid var(--red);
+      border-radius: var(--rs);
+      color: var(--red); font-size: .85rem;
+      animation: fadeIn .3s ease;
+    }
+    .cf-toast.show { display: flex; align-items: center; gap: .5rem; }
+
+    /* Success state */
+    .cf-success {
+      display: none; text-align: center;
+      padding: 3rem 2rem; animation: fadeIn .5s ease;
+    }
+    .cf-success-icon {
+      font-size: 4rem; margin-bottom: 1rem;
+      animation: bounceIn .6s cubic-bezier(.36,.07,.19,.97);
+    }
+    @keyframes bounceIn {
+      0%   { transform: scale(0); }
+      60%  { transform: scale(1.15); }
+      80%  { transform: scale(.95); }
+      100% { transform: scale(1); }
+    }
+    .cf-success-title { font-size: 1.5rem; font-weight: 700; color: var(--green); margin-bottom: .75rem; }
+    .cf-success-sub   { color: var(--t2); font-size: .9rem; line-height: 1.7; }
+    .cf-success-tg    {
+      display: inline-flex; align-items: center; gap: .5rem;
+      margin-top: 1.25rem; padding: .6rem 1.2rem;
+      background: rgba(0,136,204,.15);
+      border: 1px solid rgba(0,136,204,.3);
+      border-radius: 999px; color: #0088cc;
+      font-size: .82rem; font-weight: 600;
+    }
+    .cf-success-back {
+      display: inline-block; margin-top: 1.5rem;
+      color: var(--cyan); text-decoration: none;
+      font-size: .85rem; transition: opacity .2s;
+    }
+    .cf-success-back:hover { opacity: .7; }
+
+    @keyframes fadeIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform:none; } }
+
+    /* ── FAQ ── */
+    .faq-list { display:flex; flex-direction:column; gap:.5rem; }
+    .faq-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--rs);
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+    .faq-item:hover { border-color: var(--borderH); }
+    .faq-q {
+      padding: .9rem 1.1rem;
+      font-size: .88rem; font-weight: 600;
+      display: flex; justify-content: space-between; align-items: center;
+      user-select: none;
+    }
+    .faq-arrow {
+      font-size: .7rem; color: var(--t3);
+      transition: transform .25s;
+      flex-shrink: 0;
+    }
+    .faq-a {
+      max-height: 0; overflow: hidden;
+      padding: 0 1.1rem;
+      font-size: .84rem; color: var(--t2); line-height: 1.7;
+      transition: max-height .3s ease, padding .3s ease;
+    }
+    .faq-item.open .faq-arrow { transform: rotate(180deg); }
+    .faq-item.open .faq-a { max-height: 300px; padding: 0 1.1rem .9rem; }
+
+    /* ── Sidebar cards ── */
+    .contact-sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .cs-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1.25rem 1.4rem;
+    }
+    .cs-title {
+      font-size: .72rem; font-weight: 700; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--t3);
+      margin-bottom: 1rem;
+    }
+
+    /* Live clock */
+    .live-clock {
+      font-family: var(--f-mono);
+      font-size: 2rem; font-weight: 600;
+      color: var(--cyan); letter-spacing: .05em;
+    }
+    .live-date { font-size: .8rem; color: var(--t2); margin-top: .25rem; }
+
+    /* Status list */
+    .status-list { display: flex; flex-direction: column; gap: .6rem; }
+    .status-item { display: flex; justify-content: space-between; align-items: center; font-size: .83rem; }
+    .status-name { color: var(--t2); }
+    .status-val  { display: flex; align-items: center; gap: .4rem; font-weight: 600; }
+    .status-dot  {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { opacity:1; } 50% { opacity:.4; }
+    }
+
+    /* Contact info items */
+    .cs-item { display: flex; align-items: flex-start; gap: .75rem; margin-bottom: .9rem; }
+    .cs-item:last-child { margin-bottom: 0; }
+    .cs-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+    .cs-label { font-size: .7rem; color: var(--t3); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+    .cs-value { font-size: .87rem; color: var(--t1); margin-top: .15rem; }
+    .cs-value a { color: var(--cyan); text-decoration: none; }
+    .cs-value a:hover { text-decoration: underline; }
+
+    /* Telegram card */
+    .tg-card {
+      background: linear-gradient(135deg, rgba(0,136,204,.12), rgba(0,136,204,.05));
+      border: 1px solid rgba(0,136,204,.3);
+    }
+    .tg-header {
+      display: flex; align-items: center; gap: .6rem;
+      margin-bottom: .75rem;
+    }
+    .tg-logo {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, #0088cc, #00aaff);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .tg-logo svg { color: #fff; }
+    .tg-name { font-size: .95rem; font-weight: 700; color: #0af; }
+    .tg-handle { font-size: .78rem; color: rgba(0,170,255,.6); font-family: var(--f-mono); }
+    .tg-info { font-size: .8rem; color: var(--t2); line-height: 1.6; }
+    .tg-badge {
+      display: inline-flex; align-items: center; gap: .3rem;
+      margin-top: .6rem; padding: .3rem .75rem;
+      background: rgba(0,136,204,.2);
+      border: 1px solid rgba(0,136,204,.3);
+      border-radius: 999px;
+      font-size: .73rem; color: #0af; font-weight: 600;
+    }
+    .tg-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 5px var(--green);
+    }
+
+    /* Recent activity */
+    .activity-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: .5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .8rem;
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-url { color: var(--t2); font-family: var(--f-mono); font-size: .75rem; }
+  </style>
 </head>
 <body>
 
-<!-- ════════════ NAV ════════════ -->
+<!-- ════════ NAV ════════ -->
 <header class="site-nav">
   <div class="nav-inner">
     <a href="/" class="nav-brand">
@@ -48,80 +339,126 @@
   </div>
 </header>
 
-<!-- ════════════ PAGE HERO ════════════ -->
+<!-- ════════ PAGE HERO ════════ -->
 <div class="page-hero-bar">
   <div class="pg-container">
     <div class="phb-badge">ALOQA</div>
     <h1 class="phb-h1">Biz Bilan Bog'laning</h1>
-    <p class="phb-p">Savollaringiz, bug xabarlaringiz yoki yangi modul takliflaringiz bo'lsa — shu yerdan yuboring.</p>
+    <p class="phb-p">Savollaringiz, bug xabarlaringiz yoki yangi modul takliflaringiz bo'lsa — shu yerdan yuboring.
+      Xabaringiz <strong style="color:var(--cyan)">Telegram</strong> orqali darhol qabul qilinadi.</p>
   </div>
 </div>
 
-<!-- ════════════ MAIN CONTENT ════════════ -->
+<!-- ════════ MAIN ════════ -->
 <section class="pg-section">
   <div class="pg-container">
     <div class="contact-layout">
 
-      <!-- ── LEFT: Contact Form ── -->
+      <!-- ══ LEFT: Form ══ -->
       <div>
-        <div class="contact-form-card" id="form-card">
-          <div class="cf-title">📬 Xabar Yuborish</div>
+        <div class="cf-card" id="form-card">
+          <div class="cf-card-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            Xabar Yuborish
+          </div>
 
-          <form id="contact-form" onsubmit="submitForm(event)">
+          <!-- Form -->
+          <form id="contact-form" novalidate>
             <div class="cf-row">
               <div class="cf-group">
-                <label class="cf-label">ISM *</label>
-                <input class="cf-input" type="text" placeholder="To'liq ismingiz" required minlength="2"/>
+                <label class="cf-label" for="inp-name">ISM <span class="cf-label-req">*</span></label>
+                <input id="inp-name" class="cf-input" type="text"
+                       placeholder="To'liq ismingiz" autocomplete="name"/>
+                <div class="cf-hint" id="hint-name"></div>
               </div>
               <div class="cf-group">
-                <label class="cf-label">EMAIL *</label>
-                <input class="cf-input" type="email" placeholder="email@example.com" required/>
+                <label class="cf-label" for="inp-email">EMAIL <span class="cf-label-req">*</span></label>
+                <input id="inp-email" class="cf-input" type="email"
+                       placeholder="email@example.com" autocomplete="email"/>
+                <div class="cf-hint" id="hint-email"></div>
               </div>
             </div>
 
             <div class="cf-group">
-              <label class="cf-label">MAVZU *</label>
-              <select class="cf-select" required>
+              <label class="cf-label" for="inp-subject">MAVZU <span class="cf-label-req">*</span></label>
+              <select id="inp-subject" class="cf-select">
                 <option value="" disabled selected>Mavzuni tanlang...</option>
-                <option value="bug">🐛 Bug xabari (Texnik xato)</option>
+                <option value="bug">🐛 Bug xabari — Texnik xato</option>
                 <option value="feature">💡 Yangi modul taklifi</option>
                 <option value="security">🔒 Xavfsizlik masalasi</option>
                 <option value="help">❓ Foydalanishda yordam</option>
                 <option value="report">📊 Hisobot bilan bog'liq</option>
                 <option value="other">📌 Boshqa</option>
               </select>
+              <div class="cf-hint" id="hint-subject"></div>
             </div>
 
             <div class="cf-group">
-              <label class="cf-label">URL (ixtiyoriy)</label>
-              <input class="cf-input" type="url" placeholder="https://example.com — muammo bo'lgan sayt"/>
+              <label class="cf-label" for="inp-url">URL <span style="color:var(--t3);font-weight:400">(ixtiyoriy)</span></label>
+              <input id="inp-url" class="cf-input" type="url"
+                     placeholder="https://example.com — muammo bo'lgan sayt"/>
+              <div class="cf-hint" id="hint-url"></div>
             </div>
 
             <div class="cf-group">
-              <label class="cf-label">XABAR *</label>
-              <textarea class="cf-textarea" placeholder="Xabaringizni batafsil yozing..." required minlength="20"></textarea>
+              <label class="cf-label" for="inp-message">
+                XABAR <span class="cf-label-req">*</span>
+                <span class="cf-char-count" id="char-count">0 / 2000</span>
+              </label>
+              <textarea id="inp-message" class="cf-textarea"
+                        placeholder="Muammoni batafsil tasvirlab bering. Qanday qadamlar bajarildingiz? Qaysi sahifada yuz berdi?"
+                        maxlength="2000"></textarea>
+              <div class="cf-hint" id="hint-message"></div>
             </div>
 
-            <div class="cf-group" style="display:flex;align-items:center;gap:.8rem">
-              <input type="checkbox" id="agree" required style="width:16px;height:16px;accent-color:var(--cyan)"/>
-              <label for="agree" style="font-size:.82rem;color:var(--t2);cursor:pointer">
-                Faqat ruxsat berilgan maqsadlar uchun foydalanaman va bu vositani qonunga xilof ishlatmayman.
+            <div class="cf-check-row" onclick="document.getElementById('inp-agree').click()">
+              <input type="checkbox" id="inp-agree"/>
+              <label for="inp-agree" onclick.stop>
+                Ushbu vositadan faqat <strong>ruxsat berilgan maqsadlar</strong> uchun foydalanaman
+                va qonunga xilof harakat qilmayman.
               </label>
             </div>
 
-            <button type="submit" class="btn-primary cf-submit">
-              <span id="btn-text">✉️ Xabar Yuborish</span>
+            <button type="button" class="cf-btn" id="submit-btn" onclick="submitForm()">
+              <div class="btn-spinner"></div>
+              <span class="btn-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:-3px">
+                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
+                &nbsp; Xabar Yuborish
+              </span>
             </button>
+
+            <div class="cf-toast" id="error-toast">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <span id="error-text">Xatolik yuz berdi.</span>
+            </div>
           </form>
 
+          <!-- Success -->
           <div class="cf-success" id="success-msg">
             <div class="cf-success-icon">✅</div>
             <div class="cf-success-title">Xabar Yuborildi!</div>
-            <div class="cf-success-msg">
-              Tez orada javob olamiz. Odatda <strong>24 soat</strong> ichida javob beramiz.
-              <br/><br/>
-              <a href="/" style="color:var(--cyan);text-decoration:none">← Bosh sahifaga qaytish</a>
+            <div class="cf-success-sub">
+              Xabaringiz muvaffaqiyatli qabul qilindi.<br/>
+              Odatda <strong>24 soat</strong> ichida javob beramiz.
             </div>
+            <div class="cf-success-tg" id="tg-confirm" style="display:none">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.94 8.19l-2.02 9.52c-.15.68-.54.84-1.09.52l-3-2.21-1.45 1.4c-.16.16-.29.29-.6.29l.21-3.03 5.51-4.98c.24-.21-.05-.33-.37-.12l-6.8 4.28-2.93-.92c-.64-.2-.65-.64.13-.95l11.43-4.41c.53-.19 1 .13.98.61z"/>
+              </svg>
+              Telegram ga bildirishnoma yuborildi
+            </div>
+            <br/>
+            <a href="/" class="cf-success-back">← Bosh sahifaga qaytish</a>
+            &nbsp;&nbsp;
+            <a href="#" class="cf-success-back" onclick="resetForm();return false">Yana xabar yuborish →</a>
           </div>
         </div>
 
@@ -133,65 +470,59 @@
           </div>
           <div class="faq-list">
             <div class="faq-item" onclick="toggleFaq(this)">
-              <div class="faq-q">
-                VulnScan Pro bepulmi?
-                <span class="faq-arrow">▼</span>
-              </div>
-              <div class="faq-a">
-                Ha, VulnScan Pro <strong>to'liq bepul va ochiq manba</strong>. MIT litsenziyasi ostida tarqatiladi.
-                Hech qanday to'lov yoki ro'yxatdan o'tish talab etilmaydi.
-              </div>
+              <div class="faq-q">VulnScan Pro bepulmi? <span class="faq-arrow">▼</span></div>
+              <div class="faq-a">Ha, VulnScan Pro <strong>to'liq bepul va ochiq manba</strong>. MIT litsenziyasi ostida tarqatiladi. Hech qanday to'lov yoki ro'yxatdan o'tish talab etilmaydi.</div>
             </div>
             <div class="faq-item" onclick="toggleFaq(this)">
-              <div class="faq-q">
-                Qaysi saytlarni skanerlash mumkin?
-                <span class="faq-arrow">▼</span>
-              </div>
-              <div class="faq-a">
-                Faqat <strong>o'zingizga tegishli</strong> yoki <strong>sayt egasidan yozma ruxsat</strong> olgan saytlarni.
-                Ruxsatsiz skanerlash kompyuter jinoyatchiligi bo'lib, qonuniy javobgarlikka olib keladi.
-                Sinov uchun DVWA, HackTheBox, TryHackMe kabi platformalardan foydalaning.
-              </div>
+              <div class="faq-q">Qaysi saytlarni skanerlash mumkin? <span class="faq-arrow">▼</span></div>
+              <div class="faq-a">Faqat <strong>o'zingizga tegishli</strong> yoki <strong>sayt egasidan yozma ruxsat</strong> olgan saytlarni. Ruxsatsiz skanerlash kompyuter jinoyatchiligi bo'lib, qonuniy javobgarlikka olib keladi. Sinov uchun DVWA, HackTheBox, TryHackMe platformalardan foydalaning.</div>
             </div>
             <div class="faq-item" onclick="toggleFaq(this)">
-              <div class="faq-q">
-                Skanerlash natijasi qancha vaqt saqlanadi?
-                <span class="faq-arrow">▼</span>
-              </div>
-              <div class="faq-a">
-                Barcha natijalar <strong>lokal SQLite</strong> ma'lumotlar bazasida saqlanadi.
-                Internet ga hech narsa yuborilmaydi — to'liq lokal. So'nggi 20 ta skan <em>Tarix</em> bo'limida ko'rinadi.
-              </div>
+              <div class="faq-q">Skanerlash natijasi qancha vaqt saqlanadi? <span class="faq-arrow">▼</span></div>
+              <div class="faq-a">Barcha natijalar <strong>lokal SQLite</strong> ma'lumotlar bazasida saqlanadi. Internet ga hech narsa yuborilmaydi — to'liq mahalliy. So'nggi 20 ta skan Tarix bo'limida ko'rinadi.</div>
             </div>
             <div class="faq-item" onclick="toggleFaq(this)">
-              <div class="faq-q">
-                Yangi modul qo'shish mumkinmi?
-                <span class="faq-arrow">▼</span>
-              </div>
-              <div class="faq-a">
-                Ha! Loyiha ochiq manba. <code>vulnscan/modules/</code> papkasiga yangi Python fayl qo'shing,
-                <code>BaseScanner</code> sinfidan meros oling va modulni skan profiliga ulang.
-                Aloqa formasidan ham yangi modul taklif qilishingiz mumkin.
-              </div>
+              <div class="faq-q">Yangi modul qo'shish mumkinmi? <span class="faq-arrow">▼</span></div>
+              <div class="faq-a">Ha! Loyiha ochiq manba. <code>vulnscan/modules/</code> papkasiga yangi Python fayl qo'shing, <code>BaseScanner</code> sinfidan meros oling va modulni skan profiliga ulang.</div>
             </div>
             <div class="faq-item" onclick="toggleFaq(this)">
-              <div class="faq-q">
-                Skan davomida xato chiqsa nima qilish kerak?
-                <span class="faq-arrow">▼</span>
-              </div>
-              <div class="faq-a">
-                <strong>1)</strong> URL to'g'ri ekanligini tekshiring (http:// yoki https://).<br/>
-                <strong>2)</strong> Sayt sizdan bot sifatida bloklanishi mumkin — Stealth profilini sinab ko'ring.<br/>
-                <strong>3)</strong> SSL xatosi bo'lsa "SSL tekshirishni o'tkazib yuborish" variantini yoqing.<br/>
-                <strong>4)</strong> Hali ham xato bo'lsa, quyidagi aloqa formasidan yuborin.
-              </div>
+              <div class="faq-q">Xato yuz bersa nima qilish kerak? <span class="faq-arrow">▼</span></div>
+              <div class="faq-a"><strong>1)</strong> URL to'g'ri ekanligini tekshiring (http:// yoki https://).<br/><strong>2)</strong> Sayt botni bloklashi mumkin — Stealth profilini sinab ko'ring.<br/><strong>3)</strong> SSL xatosi bo'lsa "SSL tekshirishni o'tkazib yuborish" ni yoqing.<br/><strong>4)</strong> Hali ham xato bo'lsa, yuqoridagi forma orqali yuboring.</div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+              <div class="faq-q">Javob qancha vaqt ichida keladi? <span class="faq-arrow">▼</span></div>
+              <div class="faq-a">Xabar yuborilganda <strong>Telegram</strong> orqali darhol bildirishnoma olinadi. Odatda <strong>24 soat</strong> ichida javob beriladi. Xavfsizlik masalalarida tezroq javob beriladi.</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ── RIGHT: Sidebar ── -->
+      <!-- ══ RIGHT: Sidebar ══ -->
       <div class="contact-sidebar">
+
+        <!-- Telegram Card -->
+        <div class="cs-card tg-card">
+          <div class="cs-title" style="color:rgba(0,170,255,.5)">📨 Xabar Qayerga Boradi</div>
+          <div class="tg-header">
+            <div class="tg-logo">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.94 8.19l-2.02 9.52c-.15.68-.54.84-1.09.52l-3-2.21-1.45 1.4c-.16.16-.29.29-.6.29l.21-3.03 5.51-4.98c.24-.21-.05-.33-.37-.12l-6.8 4.28-2.93-.92c-.64-.2-.65-.64.13-.95l11.43-4.41c.53-.19 1 .13.98.61z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="tg-name">Akhdior</div>
+              <div class="tg-handle">@akhdior</div>
+            </div>
+          </div>
+          <div class="tg-info">
+            Forma orqali yuborilgan har bir xabar <strong style="color:#0af">Telegram</strong> ga
+            darhol yetkaziladi. Ism, email, mavzu va xabar matni to'liq ko'rsatiladi.
+          </div>
+          <div class="tg-badge">
+            <div class="tg-dot"></div>
+            Darhol bildirishnoma
+          </div>
+        </div>
 
         <!-- Live Clock -->
         <div class="cs-card">
@@ -206,27 +537,19 @@
           <div class="status-list">
             <div class="status-item">
               <span class="status-name">API Server</span>
-              <span class="status-val" id="api-status">
-                <span class="status-dot"></span> Tekshirilmoqda...
-              </span>
+              <span class="status-val" id="api-status"><span class="status-dot"></span> Tekshirilmoqda...</span>
+            </div>
+            <div class="status-item">
+              <span class="status-name">Telegram Bot</span>
+              <span class="status-val" id="tg-status"><span class="status-dot" style="background:var(--t3);box-shadow:none"></span> —</span>
             </div>
             <div class="status-item">
               <span class="status-name">SSE Streaming</span>
-              <span class="status-val">
-                <span class="status-dot"></span> Faol
-              </span>
-            </div>
-            <div class="status-item">
-              <span class="status-name">Ma'lumotlar Bazasi</span>
-              <span class="status-val" id="db-status">
-                <span class="status-dot"></span> Tekshirilmoqda...
-              </span>
+              <span class="status-val"><span class="status-dot"></span> Faol</span>
             </div>
             <div class="status-item">
               <span class="status-name">Scan Engine</span>
-              <span class="status-val">
-                <span class="status-dot"></span> Tayyor
-              </span>
+              <span class="status-val"><span class="status-dot"></span> Tayyor</span>
             </div>
           </div>
         </div>
@@ -235,10 +558,10 @@
         <div class="cs-card">
           <div class="cs-title">📞 Aloqa Ma'lumotlari</div>
           <div class="cs-item">
-            <div class="cs-icon">📧</div>
+            <div class="cs-icon">📱</div>
             <div>
-              <div class="cs-label">Email</div>
-              <div class="cs-value"><a href="mailto:security@vulnscan.local">security@vulnscan.local</a></div>
+              <div class="cs-label">Telegram</div>
+              <div class="cs-value"><a href="https://t.me/akhdior" target="_blank">@akhdior</a></div>
             </div>
           </div>
           <div class="cs-item">
@@ -259,17 +582,15 @@
             <div class="cs-icon">⏱️</div>
             <div>
               <div class="cs-label">Javob Vaqti</div>
-              <div class="cs-value">24 soat ichida</div>
+              <div class="cs-value">≤ 24 soat</div>
             </div>
           </div>
         </div>
 
-        <!-- Recent Scans Mini -->
+        <!-- Recent Scans -->
         <div class="cs-card">
-          <div class="cs-title">🕐 So'nggi Faoliyat</div>
-          <div id="recent-activity" style="font-size:.83rem;color:var(--t2)">
-            Yuklanmoqda...
-          </div>
+          <div class="cs-title">🕐 So'nggi Skanlar</div>
+          <div id="recent-activity" style="color:var(--t3);font-size:.82rem">Yuklanmoqda...</div>
         </div>
 
       </div>
@@ -277,7 +598,7 @@
   </div>
 </section>
 
-<!-- ════════════ FOOTER ════════════ -->
+<!-- ════════ FOOTER ════════ -->
 <footer class="site-footer">
   <div class="pg-container">
     <div class="footer-inner">
@@ -288,11 +609,11 @@
         <span class="brand">VulnScan<span class="brand-accent">Pro</span></span>
       </div>
       <nav class="footer-links">
-        <a href="/"         class="footer-link">Bosh Sahifa</a>
-        <a href="/scan"     class="footer-link">Skaner</a>
+        <a href="/" class="footer-link">Bosh Sahifa</a>
+        <a href="/scan" class="footer-link">Skaner</a>
         <a href="/services" class="footer-link">Xizmatlar</a>
-        <a href="/about"    class="footer-link">Haqida</a>
-        <a href="/contact"  class="footer-link">Aloqa</a>
+        <a href="/about" class="footer-link">Haqida</a>
+        <a href="/contact" class="footer-link">Aloqa</a>
       </nav>
       <div class="footer-note">Faqat ruxsat berilgan testlar uchun · © 2026 VulnScan Pro</div>
     </div>
@@ -300,15 +621,11 @@
 </footer>
 
 <script>
-/* ── Mobile Nav ── */
+/* ── Helpers ── */
 function toggleMobileNav() {
   document.getElementById('mobile-menu').classList.toggle('hidden');
 }
-
-/* ── FAQ Toggle ── */
-function toggleFaq(el) {
-  el.classList.toggle('open');
-}
+function toggleFaq(el) { el.classList.toggle('open'); }
 
 /* ── Live Clock ── */
 function updateClock() {
@@ -316,7 +633,6 @@ function updateClock() {
   const pad = n => String(n).padStart(2,'0');
   document.getElementById('live-clock').textContent =
     `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
-
   const days = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
   const months = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
   document.getElementById('live-date').textContent =
@@ -325,15 +641,178 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 
-/* ── Server Status Check ── */
+/* ── Char counter ── */
+document.getElementById('inp-message').addEventListener('input', function() {
+  const n = this.value.length;
+  const el = document.getElementById('char-count');
+  el.textContent = `${n} / 2000`;
+  el.style.color = n > 1800 ? 'var(--orange)' : n > 1950 ? 'var(--red)' : 'var(--t3)';
+});
+
+/* ── Real-time validation ── */
+function setHint(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'cf-hint ' + (type || '');
+}
+function setInputState(el, state) {
+  el.classList.remove('valid','invalid');
+  if (state) el.classList.add(state);
+}
+
+document.getElementById('inp-name').addEventListener('blur', function() {
+  const v = this.value.trim();
+  if (!v)           { setHint('hint-name','Ism kiritilishi shart','err'); setInputState(this,'invalid'); }
+  else if (v.length < 2) { setHint('hint-name','Kamida 2 harf kiriting','err'); setInputState(this,'invalid'); }
+  else              { setHint('hint-name','✓','ok'); setInputState(this,'valid'); }
+});
+
+document.getElementById('inp-email').addEventListener('blur', function() {
+  const v = this.value.trim();
+  const ok = v && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+  if (!v)   { setHint('hint-email','Email kiritilishi shart','err'); setInputState(this,'invalid'); }
+  else if (!ok) { setHint('hint-email','Noto\'g\'ri email format','err'); setInputState(this,'invalid'); }
+  else      { setHint('hint-email','✓','ok'); setInputState(this,'valid'); }
+});
+
+document.getElementById('inp-subject').addEventListener('change', function() {
+  if (!this.value) { setHint('hint-subject','Mavzu tanlanishi shart','err'); }
+  else             { setHint('hint-subject','✓','ok'); }
+});
+
+document.getElementById('inp-url').addEventListener('blur', function() {
+  const v = this.value.trim();
+  if (!v) { setHint('hint-url','',''); return; }
+  try { new URL(v); setHint('hint-url','✓','ok'); setInputState(this,'valid'); }
+  catch { setHint('hint-url','Noto\'g\'ri URL format (https:// bilan boshlang)','err'); setInputState(this,'invalid'); }
+});
+
+document.getElementById('inp-message').addEventListener('blur', function() {
+  const v = this.value.trim();
+  if (!v)           { setHint('hint-message','Xabar kiritilishi shart','err'); }
+  else if (v.length < 20) { setHint('hint-message','Kamida 20 belgi kiriting','err'); }
+  else              { setHint('hint-message','✓','ok'); }
+});
+
+/* ── Validate all fields before submit ── */
+function validate() {
+  const name    = document.getElementById('inp-name').value.trim();
+  const email   = document.getElementById('inp-email').value.trim();
+  const subject = document.getElementById('inp-subject').value;
+  const message = document.getElementById('inp-message').value.trim();
+  const agree   = document.getElementById('inp-agree').checked;
+  const urlVal  = document.getElementById('inp-url').value.trim();
+
+  if (name.length < 2) {
+    showError('Ism kamida 2 harf bo\'lishi kerak');
+    document.getElementById('inp-name').focus();
+    return false;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showError('To\'g\'ri email manzil kiriting');
+    document.getElementById('inp-email').focus();
+    return false;
+  }
+  if (!subject) {
+    showError('Mavzuni tanlang');
+    document.getElementById('inp-subject').focus();
+    return false;
+  }
+  if (urlVal) {
+    try { new URL(urlVal); }
+    catch { showError('URL noto\'g\'ri — https:// bilan boshlang'); document.getElementById('inp-url').focus(); return false; }
+  }
+  if (message.length < 20) {
+    showError('Xabar kamida 20 belgi bo\'lishi kerak');
+    document.getElementById('inp-message').focus();
+    return false;
+  }
+  if (!agree) {
+    showError('Foydalanish shartlarini tasdiqlang');
+    return false;
+  }
+  return true;
+}
+
+/* ── UI states ── */
+function showError(msg) {
+  const t = document.getElementById('error-toast');
+  document.getElementById('error-text').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 5000);
+}
+function setLoading(on) {
+  const btn = document.getElementById('submit-btn');
+  btn.classList.toggle('loading', on);
+  btn.disabled = on;
+}
+function resetForm() {
+  document.getElementById('contact-form').style.display = 'block';
+  document.getElementById('success-msg').style.display = 'none';
+  document.getElementById('contact-form').reset();
+  document.getElementById('char-count').textContent = '0 / 2000';
+  document.querySelectorAll('.cf-input,.cf-select,.cf-textarea').forEach(el => {
+    el.classList.remove('valid','invalid');
+  });
+  document.querySelectorAll('.cf-hint').forEach(el => {
+    el.textContent = ''; el.className = 'cf-hint';
+  });
+}
+
+/* ── Form Submit ── */
+async function submitForm() {
+  document.getElementById('error-toast').classList.remove('show');
+  if (!validate()) return;
+
+  setLoading(true);
+
+  const body = {
+    name:    document.getElementById('inp-name').value.trim(),
+    email:   document.getElementById('inp-email').value.trim(),
+    subject: document.getElementById('inp-subject').value,
+    message: document.getElementById('inp-message').value.trim(),
+    url:     document.getElementById('inp-url').value.trim() || null,
+  };
+
+  try {
+    const res  = await fetch('/api/contact', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
+    });
+    const data = await res.json();
+
+    if (res.ok && data.ok) {
+      document.getElementById('contact-form').style.display = 'none';
+      const succ = document.getElementById('success-msg');
+      succ.style.display = 'block';
+      if (data.telegram) {
+        document.getElementById('tg-confirm').style.display = 'inline-flex';
+      }
+    } else {
+      showError(data.error || 'Xatolik yuz berdi. Qayta urinib ko\'ring.');
+    }
+  } catch {
+    showError('Server bilan aloqa yo\'q. Internet ulanishini tekshiring.');
+  } finally {
+    setLoading(false);
+  }
+}
+
+/* ── Enter key submit ── */
+document.getElementById('contact-form').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.ctrlKey) submitForm();
+});
+
+/* ── Server status check ── */
 async function checkStatus() {
   try {
-    const res = await fetch('/api/history');
+    const res = await fetch('/health');
     if (res.ok) {
       document.getElementById('api-status').innerHTML =
         '<span class="status-dot"></span> Ishlayapti';
-      document.getElementById('db-status').innerHTML =
-        '<span class="status-dot"></span> Ulangan';
+      document.getElementById('tg-status').innerHTML =
+        '<span class="status-dot" style="background:var(--yellow);box-shadow:0 0 6px var(--yellow)"></span> <span style="color:var(--yellow)">Token kutilmoqda</span>';
     }
   } catch {
     document.getElementById('api-status').innerHTML =
@@ -342,28 +821,23 @@ async function checkStatus() {
 }
 checkStatus();
 
-/* ── Recent Activity ── */
+/* ── Recent activity ── */
 async function loadActivity() {
   try {
-    const res = await fetch('/api/history');
+    const res  = await fetch('/api/history');
     const data = await res.json();
-    const el = document.getElementById('recent-activity');
-    if (!data.scans || data.scans.length === 0) {
+    const el   = document.getElementById('recent-activity');
+    if (!data.scans?.length) {
       el.textContent = 'Hali hech qanday skan o\'tkazilmagan.';
       return;
     }
-    const last5 = data.scans.slice(0,5);
-    el.innerHTML = last5.map(s => {
-      const url = s.target || s.url || '—';
-      const short = url.replace(/^https?:\/\//, '').slice(0, 32);
-      const total = s.total_findings ?? '?';
-      const sev = s.severity_counts || {};
-      const critH = (sev.critical || 0) + (sev.high || 0);
-      const color = critH > 0 ? 'var(--red)' : (total > 0 ? 'var(--yellow)' : 'var(--green)');
-      return `<div style="display:flex;justify-content:space-between;align-items:center;
-        padding:.5rem 0;border-bottom:1px solid var(--border)">
-        <span style="font-family:var(--f-mono);font-size:.78rem;color:var(--t2)">${short}</span>
-        <span style="color:${color};font-weight:700;font-size:.8rem">${total} zaiflik</span>
+    el.innerHTML = data.scans.slice(0,5).map(s => {
+      const url   = (s.target || s.url || '—').replace(/^https?:\/\//,'').slice(0,30);
+      const score = s.risk_score ?? 0;
+      const color = score >= 70 ? 'var(--red)' : score >= 40 ? 'var(--yellow)' : 'var(--green)';
+      return `<div class="activity-item">
+        <span class="activity-url">${url}</span>
+        <span style="color:${color};font-weight:700;font-size:.78rem">Risk: ${score}</span>
       </div>`;
     }).join('');
   } catch {
@@ -371,18 +845,6 @@ async function loadActivity() {
   }
 }
 loadActivity();
-
-/* ── Form Submit ── */
-function submitForm(e) {
-  e.preventDefault();
-  const btn = document.getElementById('btn-text');
-  btn.textContent = '⏳ Yuborilmoqda...';
-  setTimeout(() => {
-    document.getElementById('contact-form').style.display = 'none';
-    document.querySelector('.cf-title').style.display = 'none';
-    document.getElementById('success-msg').style.display = 'block';
-  }, 1200);
-}
 </script>
 </body>
 </html>
