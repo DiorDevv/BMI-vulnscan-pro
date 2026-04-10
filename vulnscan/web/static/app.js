@@ -1032,6 +1032,7 @@ function setDot(state) {
   d.className = `stb-dot ${state}`;
 }
 
+
 function tick() {
   if (!t0) return;
   const s = Math.floor((Date.now()-t0)/1000);
