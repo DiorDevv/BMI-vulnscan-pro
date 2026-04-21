@@ -8,6 +8,7 @@ import respx
 from vulnscan.utils.crawler import AsyncCrawler
 
 
+
 HOME_HTML = """
 <html>
 <body>
