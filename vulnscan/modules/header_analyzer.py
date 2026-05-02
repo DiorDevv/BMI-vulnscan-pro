@@ -611,9 +611,10 @@ def _check_cookies(url: str, h: dict[str, str]) -> list[Finding]:
         return []
 
     findings: list[Finding] = []
-    # httpx'da multi-value headerlar vergul bilan birlashtirilib kelishi mumkin,
-    # leun cookie qiymatlari ichida ham vergul bo'lishi mumkin. Biz `; ` orqali parse qilamiz.
-    cookies = [c.strip() for c in re.split(r",(?=[^ ])", raw)]
+    # We joined multiple Set-Cookie headers with \n in HeaderAnalyzer.scan()
+    # so splitting on newlines gives one cookie string per line.
+    # This avoids the comma ambiguity (cookie Expires dates contain commas).
+    cookies = [c.strip() for c in raw.splitlines() if c.strip()]
 
     for cookie_str in cookies:
         parts = [p.strip().lower() for p in cookie_str.split(";")]
@@ -717,7 +718,14 @@ class HeaderAnalyzer(BaseScanner):
         if resp is None:
             return []
 
+        # Build header dict — last value wins for most headers.
+        # Set-Cookie is special: multiple independent headers must all be checked.
         headers = {k.lower(): v for k, v in resp.headers.items()}
+        all_set_cookies = [v for k, v in resp.headers.items() if k.lower() == "set-cookie"]
+        if all_set_cookies:
+            # Join with newline so _check_cookies can split safely (dates have commas)
+            headers["set-cookie"] = "\n".join(all_set_cookies)
+
         is_https = url.startswith("https")
         findings: list[Finding] = []
 

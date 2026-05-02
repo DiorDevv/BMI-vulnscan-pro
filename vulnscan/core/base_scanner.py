@@ -8,6 +8,7 @@ import httpx
 import structlog
 
 from ..models.finding import Finding
+from ..utils.url_utils import inject_param
 from .http_client import build_client
 from .payload_engine import PayloadEngine
 from .proxy_router import ProxyRouter
@@ -64,10 +65,14 @@ class BaseScanner(ABC):
         caller_headers = kwargs.pop("headers", {})
         headers.update(caller_headers)
 
-        cookies: dict[str, str] = {}
-        cookies.update(self.session.cookies)
+        # Cookies are merged into headers to avoid the per-request cookies deprecation
+        merged_cookies: dict[str, str] = {}
+        merged_cookies.update(self.session.cookies)
         caller_cookies: dict[str, str] = kwargs.pop("cookies", {})
-        cookies.update(caller_cookies)
+        merged_cookies.update(caller_cookies)
+        if merged_cookies:
+            cookie_header = "; ".join(f"{k}={v}" for k, v in merged_cookies.items())
+            headers.setdefault("Cookie", cookie_header)
 
         log = logger.bind(method=method, url=url, module=self.__class__.__name__)
 
@@ -76,7 +81,6 @@ class BaseScanner(ABC):
                 method,
                 url,
                 headers=headers,
-                cookies=cookies,
                 **kwargs,
             )
             self._request_count += 1
@@ -104,8 +108,9 @@ class BaseScanner(ABC):
             return True  # cannot confirm without payload context
 
         try:
-            params = {finding.parameter: finding.payload}
-            resp = await self._request("GET", finding.url, params=params)
+            # inject_param replaces the param value instead of appending it
+            confirm_url = inject_param(finding.url, finding.parameter, finding.payload)
+            resp = await self._request("GET", confirm_url)
             body = resp.text[:5000]
             confirmed = finding.evidence[:50] in body or finding.payload in body
             if not confirmed:
@@ -122,6 +127,12 @@ class BaseScanner(ABC):
     async def close(self) -> None:
         if self._client and not self._client.is_closed:
             await self._client.aclose()
+
+    async def __aenter__(self) -> "BaseScanner":
+        return self
+
+    async def __aexit__(self, *args: Any) -> None:
+        await self.close()
 
     @abstractmethod
     async def scan(self, url: str) -> list[Finding]:

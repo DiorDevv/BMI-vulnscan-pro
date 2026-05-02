@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+from urllib.parse import parse_qs, urljoin, urlparse
 from uuid import uuid4
 
 import httpx
@@ -11,42 +11,48 @@ from bs4 import BeautifulSoup
 from ..core.base_scanner import BaseScanner
 from ..models.enums import Severity, VulnType
 from ..models.finding import Finding
+from ..utils.form_utils import extract_forms
+from ..utils.url_utils import inject_param
 
 logger = structlog.get_logger(__name__)
-
-# Dangerous DOM sinks
-DOM_SINKS = re.compile(
-    r"(document\.write|innerHTML|outerHTML|"
-    r"eval\s*\(|setTimeout\s*\(|location\.href|"
-    r"document\.cookie|insertAdjacentHTML)",
-    re.IGNORECASE,
-)
-
-# Dangerous DOM sources
-DOM_SOURCES = re.compile(
-    r"(location\.search|location\.hash|document\.URL|"
-    r"document\.referrer|window\.location)",
-    re.IGNORECASE,
-)
 
 # Context detection patterns
 CONTEXT_IN_SCRIPT = re.compile(r"<script[^>]*>[^<]*CANARY", re.IGNORECASE | re.DOTALL)
 CONTEXT_IN_ATTR = re.compile(r'["\'][^"\']*CANARY[^"\']*["\']', re.IGNORECASE)
 
+# HTML encoding markers that indicate the canary was safely escaped
+_ENCODING_MARKERS = ("&lt;", "&gt;", "&#", "\\u003c", "\\u003e", "%3c", "%3e")
 
-def _inject_param(url: str, param: str, value: str) -> str:
-    parsed = urlparse(url)
-    params = parse_qs(parsed.query, keep_blank_values=True)
-    params[param] = [value]
-    new_query = urlencode(params, doseq=True)
-    return urlunparse((
-        parsed.scheme, parsed.netloc, parsed.path,
-        parsed.params, new_query, "",
-    ))
+# Sanitization functions that break the source→sink data flow
+_SANITIZERS = re.compile(
+    r"(?:DOMPurify\.sanitize|escapeHtml|htmlEscape|sanitize|encode|"
+    r"encodeURIComponent|encodeURI|escape|stripTags|xssFilter)\s*\(",
+    re.IGNORECASE,
+)
+
+# DOM XSS sources and sinks — matched separately so we can check proximity
+_DOM_SOURCES_RE = re.compile(
+    r"location\.(?:search|hash|href)|document\.(?:URL|referrer)|window\.location",
+    re.IGNORECASE,
+)
+_DOM_SINKS_RE = re.compile(
+    r"innerHTML|outerHTML|document\.write\s*\(|eval\s*\(|"
+    r"setTimeout\s*\(|location\.href\s*=|insertAdjacentHTML",
+    re.IGNORECASE,
+)
+# Max chars between source and sink to be considered a direct data flow
+_DOM_PROXIMITY = 400
+
+# CDN/vendor JS prefixes — skip these to avoid false positives in minified libs
+_VENDOR_URL_RE = re.compile(
+    r"(?:jquery|bootstrap|angular|react|vue|lodash|moment|axios|cdn\.|"
+    r"googleapis\.com|cloudflare\.com|jsdelivr\.net|unpkg\.com)",
+    re.IGNORECASE,
+)
 
 
 class XSSScanner(BaseScanner):
-    """XSS scanner: reflected, DOM-based, with bypass techniques."""
+    """XSS scanner: reflected (URL params + HTML forms), DOM-based (inline + external JS)."""
 
     async def scan(self, url: str) -> list[Finding]:
         findings: list[Finding] = []
@@ -57,13 +63,15 @@ class XSSScanner(BaseScanner):
             for param in params:
                 findings.extend(await self._scan_reflected(url, param))
 
-        # DOM-based XSS — fetch page once
-        dom_findings = await self._scan_dom(url)
-        findings.extend(dom_findings)
+        # DOM-based XSS — inline scripts + external JS files
+        findings.extend(await self._scan_dom(url))
+
+        # Form-based XSS — GET and POST forms
+        findings.extend(await self._scan_forms(url))
 
         return findings
 
-    # ── Reflected XSS ─────────────────────────────────────────────────────────
+    # ── Reflected XSS (URL params) ────────────────────────────────────────────
 
     async def _scan_reflected(self, url: str, param: str) -> list[Finding]:
         canary = f"xss_{uuid4().hex[:8]}"
@@ -71,12 +79,11 @@ class XSSScanner(BaseScanner):
 
         for payload in payloads:
             try:
-                test_url = _inject_param(url, param, payload)
+                test_url = inject_param(url, param, payload)
                 resp = await self._request("GET", test_url, follow_redirects=True)
                 body = resp.text
 
-                # Check if canary is reflected unescaped
-                if canary in body and "&lt;" not in body[max(0, body.index(canary) - 20): body.index(canary)]:
+                if canary in body and not self._canary_is_encoded(body, canary):
                     context = self._detect_context(body, canary)
                     finding = Finding(
                         vuln_type=VulnType.XSS_REFLECTED,
@@ -97,62 +104,123 @@ class XSSScanner(BaseScanner):
                         ),
                     )
                     if await self._confirm_finding(finding):
-                        logger.info(
-                            "xss_reflected_found",
-                            url=url,
-                            param=param,
-                            context=context,
-                        )
+                        logger.info("xss_reflected_found", url=url, param=param, context=context)
                         return [finding]
             except (httpx.TimeoutException, httpx.ConnectError, Exception) as exc:
                 logger.debug("xss_reflected_request_failed", url=url, error=str(exc))
 
-        # Try bypass payloads if basic didn't work
         return await self._scan_reflected_bypasses(url, param)
 
     async def _scan_reflected_bypasses(self, url: str, param: str) -> list[Finding]:
         canary = f"xss_{uuid4().hex[:8]}"
         bypass_payloads = [
             f"<ScRiPt>console.log('{canary}')</ScRiPt>",
-            f"&lt;script&gt;console.log('{canary}')&lt;/script&gt;",
+            f"</title><script>console.log('{canary}')</script>",
             f"%253Cscript%253Econsole.log('{canary}')%253C%2Fscript%253E",
             f"<scr\x00ipt>console.log('{canary}')</scr\x00ipt>",
             f"<svg><animate onbegin=alert('{canary}') attributeName=x dur=1s>",
         ]
         for payload in bypass_payloads:
             try:
-                test_url = _inject_param(url, param, payload)
+                test_url = inject_param(url, param, payload)
                 resp = await self._request("GET", test_url, follow_redirects=True)
-                # Only flag if canary appears AND HTML entities are NOT present
-                # in the surrounding window (guards against escaped reflection)
                 body = resp.text
                 if canary in body:
                     idx = body.index(canary)
                     window = body[max(0, idx - 60): idx + len(canary) + 60]
-                    is_escaped = any(ent in window for ent in ("&lt;", "&gt;", "&#x27;", "&#39;", "&quot;"))
-                if canary in body and not is_escaped:
-                    finding = Finding(
-                        vuln_type=VulnType.XSS_REFLECTED,
-                        severity=Severity.HIGH,
-                        url=url,
-                        parameter=param,
-                        payload=payload,
-                        evidence=(
-                            f"XSS bypass payload reflected with canary {canary!r}. "
-                            f"Snippet: {self._extract_snippet(resp.text, canary)}"
-                        ),
-                        cvss_score=7.4,
-                        cwe_id="CWE-79",
-                        owasp_ref="A03:2021",
-                        remediation=(
-                            "HTML-encode all user-supplied output. "
-                            "Implement a strict Content Security Policy."
-                        ),
+                    is_escaped = any(
+                        ent in window
+                        for ent in ("&lt;", "&gt;", "&#x27;", "&#39;", "&quot;")
                     )
-                    return [finding]
+                    if not is_escaped:
+                        return [Finding(
+                            vuln_type=VulnType.XSS_REFLECTED,
+                            severity=Severity.HIGH,
+                            url=url,
+                            parameter=param,
+                            payload=payload,
+                            evidence=(
+                                f"XSS bypass payload reflected with canary {canary!r}. "
+                                f"Snippet: {self._extract_snippet(resp.text, canary)}"
+                            ),
+                            cvss_score=7.4,
+                            cwe_id="CWE-79",
+                            owasp_ref="A03:2021",
+                            remediation=(
+                                "HTML-encode all user-supplied output. "
+                                "Implement a strict Content Security Policy."
+                            ),
+                        )]
             except Exception as exc:
                 logger.debug("xss_bypass_failed", url=url, error=str(exc))
         return []
+
+    # ── Form-based XSS (GET + POST) ───────────────────────────────────────────
+
+    async def _scan_forms(self, url: str) -> list[Finding]:
+        findings: list[Finding] = []
+        try:
+            resp = await self._request("GET", url, follow_redirects=True)
+            forms = extract_forms(resp.text, url)
+        except Exception:
+            return findings
+
+        for form in forms:
+            action = form["action"]
+            method = form["method"]
+            base_data = form["inputs"]
+            injectable = form["injectable"]
+
+            for field in injectable:
+                canary = f"xss_{uuid4().hex[:8]}"
+                for payload in self.payload_engine.xss_payloads(canary):
+                    data = {**base_data, field: payload}
+                    try:
+                        if method == "POST":
+                            resp = await self._request(
+                                "POST", action, data=data, follow_redirects=True
+                            )
+                        else:
+                            resp = await self._request(
+                                "GET", action, params=data, follow_redirects=True
+                            )
+                        body = resp.text
+                        if canary in body and not self._canary_is_encoded(body, canary):
+                            context = self._detect_context(body, canary)
+                            findings.append(Finding(
+                                vuln_type=VulnType.XSS_REFLECTED,
+                                severity=Severity.HIGH,
+                                url=action,
+                                parameter=field,
+                                payload=payload,
+                                evidence=(
+                                    f"Form XSS ({method}): canary {canary!r} reflected "
+                                    f"unescaped in {context} context. "
+                                    f"Snippet: {self._extract_snippet(body, canary)}"
+                                ),
+                                cvss_score=7.4,
+                                cwe_id="CWE-79",
+                                owasp_ref="A03:2021",
+                                remediation=(
+                                    "HTML-encode all user-supplied output. "
+                                    "Use a Content Security Policy."
+                                ),
+                            ))
+                            logger.info(
+                                "xss_form_found",
+                                url=action,
+                                field=field,
+                                method=method,
+                                context=context,
+                            )
+                            break
+                    except Exception as exc:
+                        logger.debug("xss_form_failed", url=action, field=field, error=str(exc))
+                else:
+                    continue
+                break  # one finding per form
+
+        return findings
 
     # ── DOM-based XSS ─────────────────────────────────────────────────────────
 
@@ -162,44 +230,84 @@ class XSSScanner(BaseScanner):
             resp = await self._request("GET", url, follow_redirects=True)
             soup = BeautifulSoup(resp.text, "lxml")
 
-            scripts = soup.find_all("script")
-            for script in scripts:
+            # 1. Inline scripts
+            for script in soup.find_all("script"):
                 src_text = script.string or ""
-                if not src_text:
+                if len(src_text) < 20:
                     continue
+                finding = self._check_dom_taint(src_text, url)
+                if finding:
+                    findings.append(finding)
+                    break
 
-                has_sink = DOM_SINKS.search(src_text)
-                has_source = DOM_SOURCES.search(src_text)
+            # 2. External JS files (skip vendor/CDN, limit to 5)
+            if not findings:
+                external_js = [
+                    tag.get("src", "")
+                    for tag in soup.find_all("script", src=True)
+                    if tag.get("src") and not _VENDOR_URL_RE.search(tag.get("src", ""))
+                ]
+                for js_src in external_js[:5]:
+                    js_url = urljoin(url, js_src)
+                    try:
+                        js_resp = await self._request("GET", js_url, follow_redirects=True)
+                        finding = self._check_dom_taint(js_resp.text, js_url)
+                        if finding:
+                            findings.append(finding)
+                            break
+                    except Exception:
+                        continue
 
-                if has_sink and has_source:
-                    sink_match = DOM_SINKS.search(src_text)
-                    source_match = DOM_SOURCES.search(src_text)
-                    findings.append(Finding(
-                        vuln_type=VulnType.XSS_DOM,
-                        severity=Severity.MEDIUM,
-                        url=url,
-                        evidence=(
-                            f"DOM sink {sink_match.group(0)!r} receives data from "  # type: ignore[union-attr]
-                            f"source {source_match.group(0)!r}"  # type: ignore[union-attr]
-                        ),
-                        cvss_score=6.1,
-                        cwe_id="CWE-79",
-                        owasp_ref="A03:2021",
-                        remediation=(
-                            "Avoid passing user-controlled data (location.search, "
-                            "location.hash) to dangerous DOM sinks. "
-                            "Use textContent instead of innerHTML."
-                        ),
-                    ))
-                    break  # one DOM finding per page is sufficient
         except Exception as exc:
             logger.debug("xss_dom_failed", url=url, error=str(exc))
 
         return findings
 
+    @staticmethod
+    def _check_dom_taint(src_text: str, url: str) -> Finding | None:
+        """Check a JS snippet for direct source→sink data flow within proximity window."""
+        source_matches = list(_DOM_SOURCES_RE.finditer(src_text))
+        sink_matches = list(_DOM_SINKS_RE.finditer(src_text))
+        if not source_matches or not sink_matches:
+            return None
+
+        for src_m in source_matches:
+            for sink_m in sink_matches:
+                distance = abs(src_m.start() - sink_m.start())
+                if distance > _DOM_PROXIMITY:
+                    continue
+                start = min(src_m.start(), sink_m.start())
+                end = max(src_m.end(), sink_m.end())
+                span = src_text[start:end]
+                if _SANITIZERS.search(span):
+                    continue
+                snippet = span[:300].replace("\n", " ")
+                return Finding(
+                    vuln_type=VulnType.XSS_DOM,
+                    severity=Severity.MEDIUM,
+                    url=url,
+                    evidence=f"Direct source→sink data flow detected: {snippet!r}",
+                    cvss_score=6.1,
+                    cwe_id="CWE-79",
+                    owasp_ref="A03:2021",
+                    remediation=(
+                        "Avoid passing user-controlled data (location.search, "
+                        "location.hash) directly to dangerous DOM sinks. "
+                        "Use textContent instead of innerHTML, or sanitize with DOMPurify."
+                    ),
+                )
+        return None
+
     # ── Helpers ───────────────────────────────────────────────────────────────
 
-    def _detect_context(self, body: str, canary: str) -> str:
+    @staticmethod
+    def _canary_is_encoded(body: str, canary: str) -> bool:
+        idx = body.index(canary)
+        window = body[max(0, idx - 50): idx + len(canary) + 50]
+        return any(m in window for m in _ENCODING_MARKERS)
+
+    @staticmethod
+    def _detect_context(body: str, canary: str) -> str:
         idx = body.find(canary)
         if idx == -1:
             return "unknown"

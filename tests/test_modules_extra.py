@@ -209,7 +209,8 @@ async def test_dir_bruteforce_finds_sensitive_file() -> None:
 
 
 @pytest.mark.asyncio
-async def test_dir_bruteforce_403_is_low_severity() -> None:
+async def test_dir_bruteforce_403_nonsensitive_ignored() -> None:
+    """403 on a non-sensitive path should not be reported (too noisy)."""
     import re as _re
     scanner = _make_scanner(DirBruteforcer)
     with respx.MockRouter(assert_all_called=False) as mock:
@@ -223,8 +224,27 @@ async def test_dir_bruteforce_403_is_low_severity() -> None:
             "not found page",
         )
 
+    assert finding is None
+
+
+@pytest.mark.asyncio
+async def test_dir_bruteforce_403_sensitive_is_medium() -> None:
+    """403 on a sensitive path should be reported as MEDIUM severity."""
+    import re as _re
+    scanner = _make_scanner(DirBruteforcer)
+    with respx.MockRouter(assert_all_called=False) as mock:
+        mock.get(_re.compile(r"http://dirtest2\.local")).mock(
+            return_value=httpx.Response(403, text="forbidden")
+        )
+        finding = await scanner._probe(
+            "http://dirtest2.local",
+            "/.env",
+            asyncio.Semaphore(10),
+            "not found page",
+        )
+
     assert finding is not None
-    assert finding.severity == Severity.LOW
+    assert finding.severity == Severity.MEDIUM
 
 
 # ── Models ────────────────────────────────────────────────────────────────────

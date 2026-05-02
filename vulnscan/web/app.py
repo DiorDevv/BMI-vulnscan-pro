@@ -14,7 +14,7 @@ import time
 import uuid
 import webbrowser
 from pathlib import Path
-from typing import Any, AsyncGenerator
+from typing import Any, AsyncGenerator, Literal
 
 import uvicorn
 from fastapi import FastAPI, Request
@@ -53,11 +53,17 @@ app = FastAPI(
     version="1.0.0",
 )
 
+_ALLOWED_ORIGINS = os.environ.get("CORS_ORIGINS", "").split(",")
+_ALLOWED_ORIGINS = [o.strip() for o in _ALLOWED_ORIGINS if o.strip()] or [
+    "http://localhost:8719",
+    "http://127.0.0.1:8719",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
@@ -93,7 +99,7 @@ async def contact_page(request: Request) -> HTMLResponse:
 
 class ScanRequest(BaseModel):
     url: str
-    profile: str = "quick"
+    profile: Literal["quick", "full", "stealth"] = "quick"
     ignore_ssl: bool = False
     ignore_robots: bool = False
 
@@ -291,9 +297,11 @@ async def _scan_task(
             queue.put_nowait(None)
         except asyncio.QueueFull:
             pass
-        # Clean up queue after a short delay
+        # Clean up queue after a short delay, scan_store after 1 hour
         await asyncio.sleep(60)
         _active_queues.pop(scan_id, None)
+        await asyncio.sleep(3540)  # 1h total — then drop result from memory
+        _scan_store.pop(scan_id, None)
 
 
 # ── Server launcher ───────────────────────────────────────────────────────────

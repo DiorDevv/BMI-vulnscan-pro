@@ -46,9 +46,9 @@ async def test_rate_limiter_slow_path() -> None:
 
 @pytest.mark.asyncio
 async def test_port_scanner_closed_port() -> None:
-    from vulnscan.modules.port_scanner import _check_port
+    from vulnscan.modules.port_scanner import _tcp_connect
     # Port 1 should not be open on localhost in test environment
-    result = await _check_port("127.0.0.1", 1, timeout=1.0)
+    result = await _tcp_connect("127.0.0.1", 1, timeout=1.0)
     # We don't assert True/False since it might occasionally be open;
     # just verify it returns a bool without raising
     assert isinstance(result, bool)

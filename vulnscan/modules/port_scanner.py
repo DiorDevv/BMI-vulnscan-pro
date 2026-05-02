@@ -847,7 +847,8 @@ class PortScanner(BaseScanner):
         ports_to_scan = set(PORT_META) | set(extra_ports)
 
         try:
-            resolved_ip = socket.gethostbyname(host)
+            loop = asyncio.get_event_loop()
+            resolved_ip = await loop.run_in_executor(None, socket.gethostbyname, host)
         except socket.gaierror:
             resolved_ip = host
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from difflib import SequenceMatcher
 from urllib.parse import urljoin
 
@@ -24,6 +25,29 @@ SENSITIVE_PATHS = frozenset({
     "/composer.json", "/package.json", "/yarn.lock",
     "/Gemfile", "/requirements.txt",
 })
+
+# Content signatures for sensitive files — if the body doesn't match, it's a catch-all
+_CONTENT_SIGS: dict[str, re.Pattern[str]] = {
+    ".env":            re.compile(r"^[A-Z_][A-Z0-9_]*\s*=", re.MULTILINE),
+    ".git/config":     re.compile(r"\[core\]|repositoryformatversion", re.IGNORECASE),
+    "wp-config.php":   re.compile(r"DB_NAME|DB_PASSWORD|ABSPATH", re.IGNORECASE),
+    "phpinfo.php":     re.compile(r"PHP Version|phpinfo\(\)", re.IGNORECASE),
+    ".htpasswd":       re.compile(r":\$(?:apr1|2[ay])\$|:[./A-Za-z0-9]{13}\b"),
+    "package.json":    re.compile(r'"name"\s*:', re.IGNORECASE),
+    "composer.json":   re.compile(r'"require"\s*:|"name"\s*:', re.IGNORECASE),
+    "actuator/env":    re.compile(r'"propertySources"|"activeProfiles"', re.IGNORECASE),
+    "server-status":   re.compile(r"Apache|Server Version|requests/sec", re.IGNORECASE),
+}
+
+
+def _content_matches_expectation(path: str, body: str) -> bool:
+    """Return False if the response body looks like a generic error page."""
+    path_lower = path.lower()
+    for key, pattern in _CONTENT_SIGS.items():
+        if key in path_lower:
+            return bool(pattern.search(body[:3000]))
+    # For binary-like paths (zips, tarballs, sql dumps) check content-type externally
+    return True
 
 
 def _similarity(a: str, b: str) -> float:
@@ -97,10 +121,21 @@ class DirBruteforcer(BaseScanner):
             is_sensitive = any(path.lower() == s.lower() for s in SENSITIVE_PATHS)
 
             if resp.status_code == 200:
-                # Verify it's not a catch-all 200
+                # Guard 1: catch-all 200 detection via body similarity
                 similarity = _similarity(resp.text, baseline_text)
                 if similarity >= 0.85 and not is_sensitive:
-                    return None  # likely catch-all
+                    return None
+
+                # Guard 2: for sensitive files, verify the body actually looks
+                # like the expected file type (not an HTML error page)
+                if is_sensitive and not _content_matches_expectation(path, resp.text):
+                    # Body doesn't match expected format → likely a catch-all
+                    logger.debug(
+                        "sensitive_file_content_mismatch",
+                        url=target_url,
+                        path=path,
+                    )
+                    return None
 
                 severity = Severity.HIGH if is_sensitive else Severity.MEDIUM
                 vuln_type = VulnType.SENSITIVE_FILE if is_sensitive else VulnType.DIR_LISTING
@@ -110,7 +145,7 @@ class DirBruteforcer(BaseScanner):
                     severity=severity,
                     url=target_url,
                     evidence=(
-                        f"HTTP 200 response ({len(resp.content)} bytes). "
+                        f"HTTP 200 — {len(resp.content)} bytes. "
                         f"{'Sensitive file exposed.' if is_sensitive else 'Directory accessible.'}"
                     ),
                     cvss_score=7.5 if is_sensitive else 5.3,
@@ -122,19 +157,20 @@ class DirBruteforcer(BaseScanner):
                     ),
                 )
 
-            elif resp.status_code == 403:
-                # Resource exists but is forbidden — still noteworthy
+            elif resp.status_code == 403 and is_sensitive:
+                # 403 only flagged for SENSITIVE paths — for regular dirs it's
+                # expected (nginx/Apache default behavior) and too noisy
                 return Finding(
-                    vuln_type=VulnType.DIR_LISTING,
-                    severity=Severity.LOW,
+                    vuln_type=VulnType.SENSITIVE_FILE,
+                    severity=Severity.MEDIUM,
                     url=target_url,
-                    evidence=f"HTTP 403 — resource exists but is forbidden",
-                    cvss_score=2.6,
-                    cwe_id="CWE-548",
+                    evidence="HTTP 403 — sensitive resource exists but access is restricted",
+                    cvss_score=4.3,
+                    cwe_id="CWE-538",
                     owasp_ref="A01:2021",
                     remediation=(
-                        "Verify this resource should exist. "
-                        "If not needed, remove it entirely."
+                        "Remove this sensitive file from the web root entirely. "
+                        "A 403 still confirms the resource exists."
                     ),
                 )
 

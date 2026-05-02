@@ -172,8 +172,8 @@ async def run_scan(config: ScanConfig, event_cb=None) -> ScanResult:
 
         ssl_task = progress.add_task("[cyan]SSL Analysis", total=1, found=0)
         await emit("module_start", module="ssl", message="SSL Analysis …")
-        ssl_scanner = make_scanner(SSLAnalyzer)
-        ssl_findings = await ssl_scanner.scan(config.target)
+        async with make_scanner(SSLAnalyzer) as ssl_scanner:
+            ssl_findings = await ssl_scanner.scan(config.target)
         all_findings.extend(ssl_findings)
         progress.update(ssl_task, advance=1, found=len(ssl_findings))
         result.modules_run.append("ssl")
@@ -186,8 +186,8 @@ async def run_scan(config: ScanConfig, event_cb=None) -> ScanResult:
 
         hdr_task = progress.add_task("[cyan]Header Analysis", total=1, found=0)
         await emit("module_start", module="headers", message="Header Analysis …")
-        hdr_scanner = make_scanner(HeaderAnalyzer)
-        hdr_findings = await hdr_scanner.scan(config.target)
+        async with make_scanner(HeaderAnalyzer) as hdr_scanner:
+            hdr_findings = await hdr_scanner.scan(config.target)
         all_findings.extend(hdr_findings)
         progress.update(hdr_task, advance=1, found=len(hdr_findings))
         result.modules_run.append("headers")
@@ -201,8 +201,8 @@ async def run_scan(config: ScanConfig, event_cb=None) -> ScanResult:
         port_task = progress.add_task("[cyan]Port Scan", total=1, found=0)
         if config.scan_profile != "stealth":
             await emit("module_start", module="ports", message="Port Scan …")
-            port_scanner = make_scanner(PortScanner)
-            port_findings = await port_scanner.scan(config.target)
+            async with make_scanner(PortScanner) as port_scanner:
+                port_findings = await port_scanner.scan(config.target)
             all_findings.extend(port_findings)
             progress.update(port_task, advance=1, found=len(port_findings))
             result.modules_run.append("ports")
@@ -247,45 +247,66 @@ async def run_scan(config: ScanConfig, event_cb=None) -> ScanResult:
             active_modules = config.modules or ["sqli", "xss", "dirs", "cors", "redirect"]
 
             # URLs with params → SQLi + XSS + redirect
-            if crawl_result.params:
-                total_urls = len(crawl_result.params)
-                active_task = progress.add_task(
-                    "[yellow]Active scan (URLs)", total=total_urls, found=0
-                )
-                await emit(
-                    "module_start",
-                    module="active",
-                    message=f"Active scan: {total_urls} parameterised URL(s) …",
-                )
-                for url_with_params in crawl_result.params:
-                    tasks: list[Any] = []
-                    if "sqli" in active_modules:
-                        tasks.append(make_scanner(SQLiScanner).scan(url_with_params))
-                    if "xss" in active_modules:
-                        tasks.append(make_scanner(XSSScanner).scan(url_with_params))
-                    if "redirect" in active_modules:
-                        tasks.append(make_scanner(OpenRedirectScanner).scan(url_with_params))
+            # Scanners created once and reused across URLs to avoid connection churn
+            sqli_scanner = make_scanner(SQLiScanner) if "sqli" in active_modules else None
+            xss_s = make_scanner(XSSScanner) if "xss" in active_modules else None
+            redir_scanner = make_scanner(OpenRedirectScanner) if "redirect" in active_modules else None
 
-                    if tasks:
-                        gathered = await asyncio.gather(*tasks, return_exceptions=True)
-                        for r in gathered:
-                            if isinstance(r, list):
-                                all_findings.extend(r)
-                    progress.update(active_task, advance=1, found=len(all_findings))
+            try:
+                if crawl_result.params:
+                    total_urls = len(crawl_result.params)
+                    active_task = progress.add_task(
+                        "[yellow]Active scan (URLs)", total=total_urls, found=0
+                    )
+                    await emit(
+                        "module_start",
+                        module="active",
+                        message=f"Active scan: {total_urls} parameterised URL(s) …",
+                    )
+                    for url_with_params in crawl_result.params:
+                        tasks: list[Any] = []
+                        if sqli_scanner:
+                            tasks.append(sqli_scanner.scan(url_with_params))
+                        if xss_s:
+                            tasks.append(xss_s.scan(url_with_params))
+                        if redir_scanner:
+                            tasks.append(redir_scanner.scan(url_with_params))
 
-                await emit(
-                    "module_done",
-                    module="active",
-                    findings=len(all_findings),
-                    message=f"Active scan: {len(all_findings)} finding(s) so far",
-                )
+                        if tasks:
+                            gathered = await asyncio.gather(*tasks, return_exceptions=True)
+                            for r in gathered:
+                                if isinstance(r, list):
+                                    all_findings.extend(r)
+                                elif isinstance(r, Exception):
+                                    result.errors.append(str(r))
+                                    logger.warning("module_error", error=str(r))
+                        progress.update(active_task, advance=1, found=len(all_findings))
+
+                    await emit(
+                        "module_done",
+                        module="active",
+                        findings=len(all_findings),
+                        message=f"Active scan: {len(all_findings)} finding(s) so far",
+                    )
+            finally:
+                for _s in [sqli_scanner, xss_s, redir_scanner]:
+                    if _s:
+                        await _s.close()
+
+            # Track which active modules ran
+            if sqli_scanner:
+                result.modules_run.append("sqli")
+            if xss_s:
+                result.modules_run.append("xss")
+            if redir_scanner:
+                result.modules_run.append("redirect")
 
             # CORS check on base URL
             if "cors" in active_modules:
                 cors_task = progress.add_task("[yellow]CORS Check", total=1, found=0)
                 await emit("module_start", module="cors", message="CORS Misconfiguration check …")
-                cors_scanner = make_scanner(CORSChecker)
-                cors_findings = await cors_scanner.scan(config.target)
+                async with make_scanner(CORSChecker) as cors_scanner:
+                    cors_findings = await cors_scanner.scan(config.target)
                 all_findings.extend(cors_findings)
                 progress.update(cors_task, advance=1, found=len(cors_findings))
                 result.modules_run.append("cors")
@@ -300,8 +321,8 @@ async def run_scan(config: ScanConfig, event_cb=None) -> ScanResult:
             if "dirs" in active_modules:
                 dir_task = progress.add_task("[yellow]Dir Bruteforce", total=1, found=0)
                 await emit("module_start", module="dirs", message="Directory bruteforce …")
-                dir_scanner = make_scanner(DirBruteforcer)
-                dir_findings = await dir_scanner.scan(base_url)
+                async with make_scanner(DirBruteforcer) as dir_scanner:
+                    dir_findings = await dir_scanner.scan(base_url)
                 all_findings.extend(dir_findings)
                 progress.update(dir_task, advance=1, found=len(dir_findings))
                 result.modules_run.append("dirs")
@@ -318,8 +339,8 @@ async def run_scan(config: ScanConfig, event_cb=None) -> ScanResult:
             await emit("phase", name="quick_dirs", message="Phase 2 — Quick Directory Check")
             dir_task = progress.add_task("[yellow]Top Dirs", total=1, found=0)
             await emit("module_start", module="dirs", message="Top directory check …")
-            dir_scanner = make_scanner(DirBruteforcer)
-            dir_findings = await dir_scanner.scan(base_url)
+            async with make_scanner(DirBruteforcer) as dir_scanner:
+                dir_findings = await dir_scanner.scan(base_url)
             all_findings.extend(dir_findings)
             progress.update(dir_task, advance=1, found=len(dir_findings))
             result.modules_run.append("dirs")

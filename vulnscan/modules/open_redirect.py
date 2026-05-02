@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+from urllib.parse import parse_qs, urlparse
 
 import httpx
 import structlog
@@ -8,6 +8,7 @@ import structlog
 from ..core.base_scanner import BaseScanner
 from ..models.enums import Severity, VulnType
 from ..models.finding import Finding
+from ..utils.url_utils import inject_param
 
 logger = structlog.get_logger(__name__)
 
@@ -29,17 +30,6 @@ REDIRECT_PAYLOADS = [
 ]
 
 EVIL_DOMAIN = "evil.com"
-
-
-def _inject_param(url: str, param: str, value: str) -> str:
-    parsed = urlparse(url)
-    params = parse_qs(parsed.query, keep_blank_values=True)
-    params[param] = [value]
-    new_query = urlencode(params, doseq=True)
-    return urlunparse((
-        parsed.scheme, parsed.netloc, parsed.path,
-        parsed.params, new_query, "",
-    ))
 
 
 def _is_offsite_redirect(location: str) -> bool:
@@ -77,7 +67,7 @@ class OpenRedirectScanner(BaseScanner):
     async def _test_redirect(
         self, url: str, param: str, payload: str
     ) -> Finding | None:
-        test_url = _inject_param(url, param, payload)
+        test_url = inject_param(url, param, payload)
         try:
             resp = await self._request(
                 "GET",
